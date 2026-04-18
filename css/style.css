@@ -49,13 +49,129 @@ html, body {
 }
 
 /* ── Home ──────────────────────────────────────────────────────────────────── */
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.title-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .app-title {
   font-size: 2rem;
   font-weight: 800;
   letter-spacing: -1px;
-  text-align: center;
-  margin-bottom: 28px;
   color: var(--primary);
+}
+
+.version-badge {
+  font-size: .65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--border);
+  padding: 3px 8px;
+  border-radius: 99px;
+  letter-spacing: .04em;
+}
+
+.btn-guide {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Modal ─────────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  align-items: flex-end;
+  z-index: 100;
+}
+
+.modal-overlay.hidden { display: none; }
+
+.modal {
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 12px;
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 { font-size: 1.1rem; font-weight: 700; }
+
+.modal-body { padding: 16px 20px 24px; display: flex; flex-direction: column; gap: 20px; }
+
+.guide-section h3 {
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.guide-section p, .guide-section li {
+  font-size: .9rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.guide-section ol, .guide-section ul {
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.guide-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .85rem;
+}
+
+.guide-table th, .guide-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.guide-table th { font-weight: 600; color: var(--text-muted); }
+.guide-table td.right { color: var(--right); font-weight: 600; }
+.guide-table td.wrong { color: var(--wrong); font-weight: 600; }
+
+.guide-note {
+  font-size: .78rem;
+  color: var(--text-muted);
+  margin-top: 8px;
 }
 
 .section-label {

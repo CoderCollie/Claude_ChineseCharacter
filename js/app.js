@@ -1,5 +1,7 @@
 'use strict';
 
+const APP_VERSION = 'v1.2';
+
 const App = (() => {
   const NEW_PER_SESSION = 20;
   const LEVELS = [8, 7, 6, 5, 4, 3, 2, 1];
@@ -45,7 +47,13 @@ const App = (() => {
 
     return `
     <div class="screen home-screen">
-      <h1 class="app-title">漢字 카드</h1>
+      <div class="title-row">
+        <h1 class="app-title">漢字 카드</h1>
+        <div class="title-actions">
+          <button class="btn-guide" id="btn-guide">?</button>
+          <span class="version-badge">${APP_VERSION}</span>
+        </div>
+      </div>
       <section class="level-section">
         <p class="section-label">급수 선택</p>
         <div class="level-grid">${levelBtns}</div>
@@ -58,6 +66,51 @@ const App = (() => {
       <button class="btn-primary" id="btn-start" ${sessionSize === 0 ? 'disabled' : ''}>
         ${sessionSize === 0 ? '학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}
       </button>
+    </div>
+
+    <div class="modal-overlay hidden" id="guide-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>학습 방법 안내</h2>
+          <button class="btn-icon" id="btn-close-guide">✕</button>
+        </div>
+        <div class="modal-body">
+          <section class="guide-section">
+            <h3>기본 사용법</h3>
+            <ol>
+              <li>급수를 선택하고 <strong>학습 시작</strong></li>
+              <li>한자 카드를 탭해서 음훈 확인</li>
+              <li>스스로 알았으면 <strong style="color:#22c55e">알았다</strong>, 몰랐으면 <strong style="color:#ef4444">몰랐다</strong></li>
+            </ol>
+          </section>
+          <section class="guide-section">
+            <h3>SM-2 간격반복이란?</h3>
+            <p>과학적으로 검증된 암기 방법으로, Anki 앱이 사용하는 알고리즘이에요. 기억이 사라지기 직전에 복습시켜 장기 기억으로 전환해줘요.</p>
+          </section>
+          <section class="guide-section">
+            <h3>복습 간격 스케줄</h3>
+            <table class="guide-table">
+              <thead><tr><th>회차</th><th>버튼</th><th>다음 복습</th></tr></thead>
+              <tbody>
+                <tr><td>1회</td><td class="right">알았다</td><td>1일 후</td></tr>
+                <tr><td>2회</td><td class="right">알았다</td><td>6일 후</td></tr>
+                <tr><td>3회</td><td class="right">알았다</td><td>~15일 후</td></tr>
+                <tr><td>4회</td><td class="right">알았다</td><td>~38일 후</td></tr>
+                <tr><td>언제든</td><td class="wrong">몰랐다</td><td>내일 (초기화)</td></tr>
+              </tbody>
+            </table>
+            <p class="guide-note">알았다를 누를수록 간격이 점점 길어져요. 모르면 다시 1일부터 시작해요.</p>
+          </section>
+          <section class="guide-section">
+            <h3>매일 학습 루틴</h3>
+            <ul>
+              <li>앱을 열면 <strong>복습</strong> 카드 + <strong>신규</strong> 카드(최대 20장)가 자동으로 준비돼요</li>
+              <li>매일 꾸준히 하면 기억에 오래 남아요</li>
+              <li>신규 카드를 줄이거나 특정 급수만 집중 학습도 가능해요</li>
+            </ul>
+          </section>
+        </div>
+      </div>
     </div>`;
   }
 
@@ -134,6 +187,16 @@ const App = (() => {
       });
       const btnStart = el('btn-start');
       if (btnStart) btnStart.addEventListener('click', startSession);
+
+      el('btn-guide').addEventListener('click', () => {
+        el('guide-overlay').classList.remove('hidden');
+      });
+      el('btn-close-guide').addEventListener('click', () => {
+        el('guide-overlay').classList.add('hidden');
+      });
+      el('guide-overlay').addEventListener('click', e => {
+        if (e.target === el('guide-overlay')) el('guide-overlay').classList.add('hidden');
+      });
     }
 
     if (state.screen === 'study') {
