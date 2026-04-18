@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v1.3';
+const APP_VERSION = 'v1.4';
 
 const App = (() => {
   const NEW_PER_SESSION = 20;
@@ -25,6 +25,7 @@ const App = (() => {
     const app = el('app');
     if (state.screen === 'home') app.innerHTML = renderHome();
     else if (state.screen === 'study') app.innerHTML = renderStudy();
+    else if (state.screen === 'history') app.innerHTML = renderHistory();
     else app.innerHTML = renderDone();
     bindEvents();
   }
@@ -59,9 +60,21 @@ const App = (() => {
         <div class="level-grid">${levelBtns}</div>
       </section>
       <section class="stats-section">
-        <div class="stat-box"><span class="stat-num">${due}</span><span class="stat-label">복습</span></div>
-        <div class="stat-box"><span class="stat-num">${Math.min(newAvail, NEW_PER_SESSION)}</span><span class="stat-label">신규</span></div>
-        <div class="stat-box"><span class="stat-num">${stats.total}</span><span class="stat-label">전체학습</span></div>
+        <div class="stat-box">
+          <span class="stat-num">${due}</span>
+          <span class="stat-label">복습</span>
+          <span class="stat-desc">오늘 다시 볼 카드</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num">${Math.min(newAvail, NEW_PER_SESSION)}</span>
+          <span class="stat-label">신규</span>
+          <span class="stat-desc">오늘 새로 배울 카드</span>
+        </div>
+        <div class="stat-box clickable" id="btn-history">
+          <span class="stat-num">${stats.total}</span>
+          <span class="stat-label">전체학습</span>
+          <span class="stat-desc">누적 학습 카드 →</span>
+        </div>
       </section>
       <button class="btn-primary" id="btn-start" ${sessionSize === 0 ? 'disabled' : ''}>
         ${sessionSize === 0 ? '학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}
@@ -152,6 +165,54 @@ const App = (() => {
     </div>`;
   }
 
+  function renderHistory() {
+    const smState = SM2.loadState();
+    const studied = HANJA_DATA.filter(h => smState[h.id]);
+
+    // 잘 아는 카드: 연속 정답 2회 이상 (repetition >= 2)
+    const strong = studied.filter(h => smState[h.id].repetition >= 2);
+    // 헷갈리는 카드: 마지막 답이 몰랐다였거나(repetition===0) efactor가 낮음
+    const weak = studied.filter(h => smState[h.id].repetition === 0 || smState[h.id].efactor < 2.0);
+    // 학습 중: 나머지 (repetition===1, efactor 정상)
+    const learning = studied.filter(h => {
+      const s = smState[h.id];
+      return s.repetition === 1 && s.efactor >= 2.0;
+    });
+
+    function cardChip(h, type) {
+      const s = smState[h.id];
+      const nextDue = s.dueDate;
+      return `<div class="hist-chip hist-${type}" title="${h.eumhun} | 다음복습: ${nextDue}">
+        <span class="hist-char">${h.char}</span>
+        <span class="hist-eumhun">${h.eumhun}</span>
+      </div>`;
+    }
+
+    function section(title, icon, items, type, emptyMsg) {
+      return `<section class="hist-section">
+        <h3 class="hist-title">${icon} ${title} <span class="hist-count">${items.length}</span></h3>
+        ${items.length === 0
+          ? `<p class="hist-empty">${emptyMsg}</p>`
+          : `<div class="hist-grid">${items.map(h => cardChip(h, type)).join('')}</div>`
+        }
+      </section>`;
+    }
+
+    return `
+    <div class="screen history-screen">
+      <div class="study-header">
+        <button class="btn-icon" id="btn-back">←</button>
+        <span class="history-title">학습 기록</span>
+        <span class="progress-text">${studied.length}장</span>
+      </div>
+      <div class="hist-body">
+        ${section('잘 아는 한자', '💪', strong, 'strong', '아직 없어요. 알았다를 꾸준히 눌러보세요!')}
+        ${section('학습 중', '📖', learning, 'learning', '없어요.')}
+        ${section('헷갈리는 한자', '🔄', weak, 'weak', '없어요. 모두 잘 외우고 있어요!')}
+      </div>
+    </div>`;
+  }
+
   function renderDone() {
     const pct = state.sessionTotal > 0
       ? Math.round((state.sessionCorrect / state.sessionTotal) * 100) : 0;
@@ -196,6 +257,15 @@ const App = (() => {
       });
       el('guide-overlay').addEventListener('click', e => {
         if (e.target === el('guide-overlay')) el('guide-overlay').classList.add('hidden');
+      });
+      el('btn-history').addEventListener('click', () => {
+        state.screen = 'history'; render();
+      });
+    }
+
+    if (state.screen === 'history') {
+      el('btn-back').addEventListener('click', () => {
+        state.screen = 'home'; render();
       });
     }
 
