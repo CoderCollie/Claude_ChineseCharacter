@@ -1,0 +1,14 @@
+{
+  "name": "漢字 플래시카드",
+  "short_name": "漢字카드",
+  "description": "한국어문회 급수별 한자 SM-2 플래시카드",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f9fa",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
