@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v1.2';
+const APP_VERSION = 'v1.3';
 
 const App = (() => {
   const NEW_PER_SESSION = 20;

@@ -53,8 +53,8 @@ const SM2 = (() => {
 
   function isDue(id) {
     const state = loadState();
-    const card = getCard(state, id);
-    if (!card.dueDate) return true; // new card
+    const card = state[id];
+    if (!card) return false; // 신규 카드는 복습 대상이 아님
     return card.dueDate <= today();
   }
 
