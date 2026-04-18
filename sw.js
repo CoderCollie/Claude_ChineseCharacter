@@ -1,12 +1,12 @@
-const CACHE = 'hanja-v1';
+const CACHE = 'hanja-v2';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/data.js',
-  '/js/sm2.js',
-  '/js/app.js',
-  '/manifest.json'
+  '/Claude_ChineseCharacter/',
+  '/Claude_ChineseCharacter/index.html',
+  '/Claude_ChineseCharacter/css/style.css',
+  '/Claude_ChineseCharacter/js/data.js',
+  '/Claude_ChineseCharacter/js/sm2.js',
+  '/Claude_ChineseCharacter/js/app.js',
+  '/Claude_ChineseCharacter/manifest.json'
 ];
 
 self.addEventListener('install', e => {
