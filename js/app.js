@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v3.2.1';
+const APP_VERSION = 'v3.3';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -103,7 +103,7 @@ const App = (() => {
       </button>
 
       <div class="home-footer">
-        <span class="version-badge">${APP_VERSION}</span>
+        <span class="version-badge clickable" id="btn-version" title="강제 업데이트">${APP_VERSION}</span>
       </div>
 
       ${state.newVersionAvailable ? `
@@ -318,6 +318,12 @@ const App = (() => {
         });
       }
 
+      el('btn-version').addEventListener('click', () => {
+        if (confirm('최신 버전으로 강제 업데이트할까요?\n(캐시를 삭제하고 페이지를 새로고침합니다)')) {
+          forceUpdate();
+        }
+      });
+
       el('btn-export').addEventListener('click', exportData);
       el('btn-import').addEventListener('click', () => el('file-input').click());
       el('file-input').addEventListener('change', importData);
@@ -356,6 +362,20 @@ const App = (() => {
   }
 
   // ── Logic ──────────────────────────────────────────────────────────────────
+
+  async function forceUpdate() {
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (let registration of registrations) {
+        await registration.unregister();
+      }
+    }
+    const cacheNames = await caches.keys();
+    for (let cacheName of cacheNames) {
+      await caches.delete(cacheName);
+    }
+    window.location.reload();
+  }
 
   function exportData() {
     const data = {

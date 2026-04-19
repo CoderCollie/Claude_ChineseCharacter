@@ -114,6 +114,17 @@ html, body {
   letter-spacing: .04em;
 }
 
+.version-badge.clickable {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.version-badge.clickable:active {
+  transform: scale(0.92);
+  background: var(--primary);
+  color: #fff;
+}
+
 .streak-badge {
   font-size: .75rem;
   font-weight: 700;
