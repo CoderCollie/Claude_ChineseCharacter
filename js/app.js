@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v3.1';
+const APP_VERSION = 'v3.1.1';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -81,34 +81,36 @@ const App = (() => {
         ${state.searchQuery ? '<button id="btn-clear-search">✕</button>' : ''}
       </div>
 
-      ${state.searchQuery ? renderSearchResults() : `
-        <section class="level-section">
-          <p class="section-label">학습 진도</p>
-          <div class="progress-list">${progressRows}</div>
-        </section>
+      <div id="home-dynamic-content">
+        ${state.searchQuery ? renderSearchResults() : `
+          <section class="level-section">
+            <p class="section-label">학습 진도</p>
+            <div class="progress-list">${progressRows}</div>
+          </section>
 
-        <section class="stats-section">
-          <div class="stat-box">
-            <span class="stat-num">${due}</span>
-            <span class="stat-label">복습</span>
-            <span class="stat-desc">다시 볼 한자</span>
-          </div>
-          <div class="stat-box">
-            <span class="stat-num">${Math.min(newAvail, NEW_PER_SESSION)}</span>
-            <span class="stat-label">신규</span>
-            <span class="stat-desc">오늘의 목표</span>
-          </div>
-          <div class="stat-box clickable" id="btn-history">
-            <span class="stat-num">${stats.total}</span>
-            <span class="stat-label">누적</span>
-            <span class="stat-desc">공부한 한자 →</span>
-          </div>
-        </section>
+          <section class="stats-section">
+            <div class="stat-box">
+              <span class="stat-num">${due}</span>
+              <span class="stat-label">복습</span>
+              <span class="stat-desc">다시 볼 한자</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-num">${Math.min(newAvail, NEW_PER_SESSION)}</span>
+              <span class="stat-label">신규</span>
+              <span class="stat-desc">오늘의 목표</span>
+            </div>
+            <div class="stat-box clickable" id="btn-history">
+              <span class="stat-num">${stats.total}</span>
+              <span class="stat-label">누적</span>
+              <span class="stat-desc">공부한 한자 →</span>
+            </div>
+          </section>
 
-        <button class="btn-primary" id="btn-start" ${sessionSize === 0 ? 'disabled' : ''}>
-          ${sessionSize === 0 ? '오늘의 학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}
-        </button>
-      `}
+          <button class="btn-primary" id="btn-start" ${sessionSize === 0 ? 'disabled' : ''}>
+            ${sessionSize === 0 ? '오늘의 학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}
+          </button>
+        `}
+      </div>
 
       <div class="home-footer">
         <span class="version-badge">${APP_VERSION}</span>
@@ -351,14 +353,40 @@ const App = (() => {
 
       const searchInput = el('search-input');
       if (searchInput) {
-        searchInput.focus();
-        // 커서 뒤로 보내기
-        const val = searchInput.value;
-        searchInput.value = ''; searchInput.value = val;
-        
         searchInput.addEventListener('input', (e) => {
           state.searchQuery = e.target.value;
-          render();
+          const dynamicContent = el('home-dynamic-content');
+          if (dynamicContent) {
+            dynamicContent.innerHTML = state.searchQuery ? renderSearchResults() : `
+              <section class="level-section">
+                <p class="section-label">학습 진도</p>
+                <div class="progress-list">${App.renderProgressRows()}</div>
+              </section>
+              <section class="stats-section">
+                <div class="stat-box">
+                  <span class="stat-num">${SM2.getDueCards(HANJA_DATA).length}</span>
+                  <span class="stat-label">복습</span>
+                  <span class="stat-desc">다시 볼 한자</span>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-num">${Math.min(SM2.getNewCards(HANJA_DATA).length, NEW_PER_SESSION)}</span>
+                  <span class="stat-label">신규</span>
+                  <span class="stat-desc">오늘의 목표</span>
+                </div>
+                <div class="stat-box clickable" id="btn-history-inner">
+                  <span class="stat-num">${SM2.getStats().total}</span>
+                  <span class="stat-label">누적</span>
+                  <span class="stat-desc">공부한 한자 →</span>
+                </div>
+              </section>
+              <button class="btn-primary" id="btn-start-inner">학습 시작</button>
+            `;
+            // 재바인딩
+            if (el('btn-start-inner')) el('btn-start-inner').addEventListener('click', startSession);
+            if (el('btn-history-inner')) el('btn-history-inner').addEventListener('click', () => { state.screen = 'history'; render(); });
+          }
+          // 전체 렌더링을 피하기 위해 클리어 버튼만 별도 제어
+          if (!state.searchQuery || e.target.value.length === 1) render(); 
         });
       }
 
@@ -522,7 +550,21 @@ const App = (() => {
     }
   }
 
-  return { init };
+  function renderProgressRows() {
+    const smState = SM2.loadState();
+    return LEVELS.map(lv => {
+      const total = HANJA_DATA.filter(h => h.level === lv).length;
+      const learned = HANJA_DATA.filter(h => h.level === lv && smState[h.id]).length;
+      const pct = total > 0 ? Math.round(learned / total * 100) : 0;
+      return `<div class="lv-prog-row">
+        <span class="lv-prog-label">${LEVEL_LABELS[lv]}</span>
+        <div class="lv-prog-track"><div class="lv-prog-fill" style="width:${pct}%"></div></div>
+        <span class="lv-prog-num">${learned}/${total}</span>
+      </div>`;
+    }).join('');
+  }
+
+  return { init, renderProgressRows };
 })();
 
 document.addEventListener('DOMContentLoaded', () => App.init());
