@@ -245,7 +245,7 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-  margin-top: 32px;
+  margin-top: 12px;
   opacity: 0;
   pointer-events: none;
   transition: opacity .3s;
@@ -260,7 +260,7 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
 .btn-primary, .btn-secondary, .btn-wrong, .btn-right, .btn-retry {
   border: none;
   border-radius: var(--radius);
-  padding: 24px 18px;
+  padding: 48px 18px;
   font-size: 1.1rem;
   font-weight: 800;
   cursor: pointer;
