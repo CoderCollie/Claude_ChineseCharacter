@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v3.0';
+const APP_VERSION = 'v3.1';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -15,7 +15,9 @@ const App = (() => {
     sessionTotal: 0,
     sessionWrong: [],
     newVersionAvailable: false,
-    swRegistration: null
+    swRegistration: null,
+    searchQuery: '',
+    isDarkMode: localStorage.getItem('hanja_dark_mode') === 'true'
   };
 
   function el(id) { return document.getElementById(id); }
@@ -25,6 +27,8 @@ const App = (() => {
 
   function render() {
     const app = el('app');
+    document.body.classList.toggle('dark-theme', state.isDarkMode);
+    
     if (state.screen === 'home') app.innerHTML = renderHome();
     else if (state.screen === 'study') app.innerHTML = renderStudy();
     else if (state.screen === 'history') app.innerHTML = renderHistory();
@@ -55,12 +59,15 @@ const App = (() => {
     return `
     <div class="screen home-screen">
       <div class="title-row">
-        <h1 class="app-title">漢字 카드</h1>
+        <div class="app-logo-group">
+          <svg class="app-logo-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <h1 class="app-title">漢字 카드</h1>
+        </div>
         <div class="title-actions">
           ${streak > 0 ? `<span class="streak-badge">🔥 ${streak}일째</span>` : ''}
-          <button class="btn-icon" id="btn-settings">⚙️</button>
+          <button class="btn-icon-small" id="btn-toggle-dark" title="다크모드">${state.isDarkMode ? '☀️' : '🌙'}</button>
+          <button class="btn-icon-small" id="btn-settings" title="설정">⚙️</button>
           <button class="btn-guide" id="btn-guide">?</button>
-          <span class="version-badge">${APP_VERSION}</span>
         </div>
       </div>
 
@@ -69,32 +76,43 @@ const App = (() => {
         <p class="sub-greeting">오늘도 한자 공부를 시작해볼까요?</p>
       </section>
 
-      <section class="level-section">
-        <p class="section-label">학습 진도</p>
-        <div class="progress-list">${progressRows}</div>
-      </section>
+      <div class="search-bar-container">
+        <input type="text" id="search-input" placeholder="한자나 뜻, 음으로 검색..." value="${state.searchQuery}">
+        ${state.searchQuery ? '<button id="btn-clear-search">✕</button>' : ''}
+      </div>
 
-      <section class="stats-section">
-        <div class="stat-box">
-          <span class="stat-num">${due}</span>
-          <span class="stat-label">복습</span>
-          <span class="stat-desc">다시 볼 한자</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-num">${Math.min(newAvail, NEW_PER_SESSION)}</span>
-          <span class="stat-label">신규</span>
-          <span class="stat-desc">오늘의 목표</span>
-        </div>
-        <div class="stat-box clickable" id="btn-history">
-          <span class="stat-num">${stats.total}</span>
-          <span class="stat-label">누적</span>
-          <span class="stat-desc">공부한 한자 →</span>
-        </div>
-      </section>
+      ${state.searchQuery ? renderSearchResults() : `
+        <section class="level-section">
+          <p class="section-label">학습 진도</p>
+          <div class="progress-list">${progressRows}</div>
+        </section>
 
-      <button class="btn-primary" id="btn-start" ${sessionSize === 0 ? 'disabled' : ''}>
-        ${sessionSize === 0 ? '오늘의 학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}
-      </button>
+        <section class="stats-section">
+          <div class="stat-box">
+            <span class="stat-num">${due}</span>
+            <span class="stat-label">복습</span>
+            <span class="stat-desc">다시 볼 한자</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-num">${Math.min(newAvail, NEW_PER_SESSION)}</span>
+            <span class="stat-label">신규</span>
+            <span class="stat-desc">오늘의 목표</span>
+          </div>
+          <div class="stat-box clickable" id="btn-history">
+            <span class="stat-num">${stats.total}</span>
+            <span class="stat-label">누적</span>
+            <span class="stat-desc">공부한 한자 →</span>
+          </div>
+        </section>
+
+        <button class="btn-primary" id="btn-start" ${sessionSize === 0 ? 'disabled' : ''}>
+          ${sessionSize === 0 ? '오늘의 학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}
+        </button>
+      `}
+
+      <div class="home-footer">
+        <span class="version-badge">${APP_VERSION}</span>
+      </div>
 
       ${state.newVersionAvailable ? `
         <div class="update-banner">
@@ -174,6 +192,37 @@ const App = (() => {
         </div>
       </div>
     </div>`;
+  }
+
+  function renderSearchResults() {
+    const q = state.searchQuery.trim().toLowerCase();
+    if (!q) return '';
+
+    const filtered = HANJA_DATA.filter(h => 
+      h.char.includes(q) || h.eumhun.toLowerCase().includes(q)
+    ).slice(0, 50);
+
+    const smState = SM2.loadState();
+
+    return `
+    <section class="search-results-section">
+      <p class="section-label">검색 결과 (${filtered.length})</p>
+      <div class="search-results-grid">
+        ${filtered.length === 0 ? '<p class="no-results">검색 결과가 없습니다.</p>' : 
+          filtered.map(h => {
+            const isStudied = !!smState[h.id];
+            return `
+            <div class="search-card ${isStudied ? 'studied' : ''}">
+              <div class="sc-char">${h.char}</div>
+              <div class="sc-info">
+                <span class="sc-eumhun">${h.eumhun}</span>
+                <span class="sc-level">${LEVEL_LABELS[h.level]}</span>
+              </div>
+            </div>`;
+          }).join('')
+        }
+      </div>
+    </section>`;
   }
 
   function renderStudy() {
@@ -294,6 +343,31 @@ const App = (() => {
 
       el('btn-history').addEventListener('click', () => { state.screen = 'history'; render(); });
       
+      el('btn-toggle-dark').addEventListener('click', () => {
+        state.isDarkMode = !state.isDarkMode;
+        localStorage.setItem('hanja_dark_mode', state.isDarkMode);
+        render();
+      });
+
+      const searchInput = el('search-input');
+      if (searchInput) {
+        searchInput.focus();
+        // 커서 뒤로 보내기
+        const val = searchInput.value;
+        searchInput.value = ''; searchInput.value = val;
+        
+        searchInput.addEventListener('input', (e) => {
+          state.searchQuery = e.target.value;
+          render();
+        });
+      }
+
+      if (el('btn-clear-search')) {
+        el('btn-clear-search').addEventListener('click', () => {
+          state.searchQuery = ''; render();
+        });
+      }
+
       if (el('btn-update')) {
         el('btn-update').addEventListener('click', () => {
           if (state.swRegistration && state.swRegistration.waiting) {
