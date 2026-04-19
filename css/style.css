@@ -363,6 +363,6 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
 .done-icon { font-size: 4rem; margin-bottom: 16px; }
 .done-screen h2 { font-size: 1.8rem; margin-bottom: 32px; }
 .done-stats { display: flex; gap: 12px; width: 100%; margin-bottom: 32px; }
-.btn-retry { background: #fffbeb; color: #d97706; width: 100%; margin-bottom: 12px; }
+.btn-retry { background: #fffbeb; color: #d97706; width: 100%; margin-bottom: 16px; }
 .btn-again { margin-bottom: 12px; }
-.btn-home-done { width: 100%; background: none; box-shadow: none; color: var(--text-muted); }
+.btn-home-done { width: 100%; background: none; box-shadow: none; color: var(--text-muted); margin-top: 8px; }
