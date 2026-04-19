@@ -257,11 +257,25 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
   pointer-events: auto;
 }
 
-.btn-primary, .btn-secondary, .btn-wrong, .btn-right, .btn-retry {
+.btn-primary, .btn-secondary, .btn-retry, .btn-home-done {
+  border: none;
+  border-radius: var(--radius);
+  padding: 18px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  box-shadow: var(--shadow);
+}
+
+.btn-wrong, .btn-right {
   border: none;
   border-radius: var(--radius);
   padding: 48px 18px;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 800;
   cursor: pointer;
   display: flex;
@@ -310,4 +324,5 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
 .done-stats { display: flex; gap: 12px; width: 100%; margin-bottom: 32px; }
 .btn-retry { background: #fffbeb; color: #d97706; width: 100%; margin-bottom: 16px; }
 .btn-again { margin-bottom: 12px; }
-.btn-home-done { width: 100%; background: none; box-shadow: none; color: var(--text-muted); margin-top: 8px; }
+.btn-home-done { width: 100%; background: var(--surface); color: var(--text); border: 1.5px solid var(--border); margin-top: 12px; }
+.btn-home-done:active { background: var(--bg); }
