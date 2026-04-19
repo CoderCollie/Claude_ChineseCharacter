@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v2.7';
+const APP_VERSION = 'v2.8';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -55,34 +55,42 @@ const App = (() => {
       <div class="title-row">
         <h1 class="app-title">漢字 카드</h1>
         <div class="title-actions">
-          ${streak > 0 ? `<span class="streak-badge">🔥 ${streak}일</span>` : ''}
+          ${streak > 0 ? `<span class="streak-badge">🔥 ${streak}일째</span>` : ''}
           <button class="btn-guide" id="btn-guide">?</button>
           <span class="version-badge">${APP_VERSION}</span>
         </div>
       </div>
+
+      <section class="welcome-section">
+        <p class="greeting">안녕하세요! 😊</p>
+        <p class="sub-greeting">오늘도 한자 공부를 시작해볼까요?</p>
+      </section>
+
       <section class="level-section">
         <p class="section-label">학습 진도</p>
         <div class="progress-list">${progressRows}</div>
       </section>
+
       <section class="stats-section">
         <div class="stat-box">
           <span class="stat-num">${due}</span>
           <span class="stat-label">복습</span>
-          <span class="stat-desc">오늘 다시 볼 카드</span>
+          <span class="stat-desc">다시 볼 한자</span>
         </div>
         <div class="stat-box">
           <span class="stat-num">${Math.min(newAvail, NEW_PER_SESSION)}</span>
           <span class="stat-label">신규</span>
-          <span class="stat-desc">오늘 새로 배울 카드</span>
+          <span class="stat-desc">오늘의 목표</span>
         </div>
         <div class="stat-box clickable" id="btn-history">
           <span class="stat-num">${stats.total}</span>
-          <span class="stat-label">전체학습</span>
-          <span class="stat-desc">누적 학습 카드 →</span>
+          <span class="stat-label">누적</span>
+          <span class="stat-desc">공부한 한자 →</span>
         </div>
       </section>
+
       <button class="btn-primary" id="btn-start" ${sessionSize === 0 ? 'disabled' : ''}>
-        ${sessionSize === 0 ? '학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}
+        ${sessionSize === 0 ? '오늘의 학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}
       </button>
     </div>
 
