@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v1.4';
+const APP_VERSION = 'v1.5';
 
 const App = (() => {
   const NEW_PER_SESSION = 20;
@@ -14,6 +14,7 @@ const App = (() => {
     flipped: false,
     sessionCorrect: 0,
     sessionTotal: 0,
+    sessionWrong: [],
   };
 
   function el(id) { return document.getElementById(id); }
@@ -32,9 +33,11 @@ const App = (() => {
 
   function renderHome() {
     const stats = SM2.getStats();
+    const smState = SM2.loadState();
     const filtered = getByLevels(state.selectedLevels);
     const due = SM2.getDueCards(filtered).length;
     const newAvail = SM2.getNewCards(filtered).length;
+    const streak = SM2.getStreak();
 
     const levelBtns = LEVELS.map(lv => {
       const sel = state.selectedLevels.includes(lv);
@@ -44,6 +47,17 @@ const App = (() => {
       </button>`;
     }).join('');
 
+    const progressRows = state.selectedLevels.slice().sort((a,b) => b - a).map(lv => {
+      const total = HANJA_DATA.filter(h => h.level === lv).length;
+      const learned = HANJA_DATA.filter(h => h.level === lv && smState[h.id]).length;
+      const pct = total > 0 ? Math.round(learned / total * 100) : 0;
+      return `<div class="lv-prog-row">
+        <span class="lv-prog-label">${LEVEL_LABELS[lv]}</span>
+        <div class="lv-prog-track"><div class="lv-prog-fill" style="width:${pct}%"></div></div>
+        <span class="lv-prog-num">${learned}/${total}</span>
+      </div>`;
+    }).join('');
+
     const sessionSize = due + Math.min(newAvail, NEW_PER_SESSION);
 
     return `
@@ -51,6 +65,7 @@ const App = (() => {
       <div class="title-row">
         <h1 class="app-title">漢字 카드</h1>
         <div class="title-actions">
+          ${streak > 0 ? `<span class="streak-badge">🔥 ${streak}일</span>` : ''}
           <button class="btn-guide" id="btn-guide">?</button>
           <span class="version-badge">${APP_VERSION}</span>
         </div>
@@ -58,6 +73,7 @@ const App = (() => {
       <section class="level-section">
         <p class="section-label">급수 선택</p>
         <div class="level-grid">${levelBtns}</div>
+        <div class="progress-list">${progressRows}</div>
       </section>
       <section class="stats-section">
         <div class="stat-box">
@@ -216,16 +232,18 @@ const App = (() => {
   function renderDone() {
     const pct = state.sessionTotal > 0
       ? Math.round((state.sessionCorrect / state.sessionTotal) * 100) : 0;
+    const wrongCount = state.sessionWrong.length;
     return `
     <div class="screen done-screen">
       <div class="done-icon">${pct >= 70 ? '🎉' : '📚'}</div>
-      <h2>오늘 학습 완료!</h2>
+      <h2>세션 완료!</h2>
       <div class="done-stats">
         <div class="stat-box"><span class="stat-num">${state.sessionTotal}</span><span class="stat-label">학습</span></div>
         <div class="stat-box"><span class="stat-num">${state.sessionCorrect}</span><span class="stat-label">정답</span></div>
         <div class="stat-box"><span class="stat-num">${pct}%</span><span class="stat-label">정답률</span></div>
       </div>
-      <button class="btn-primary" id="btn-again">다시 학습</button>
+      ${wrongCount > 0 ? `<button class="btn-retry" id="btn-retry">틀린 카드만 다시 (${wrongCount}장)</button>` : ''}
+      <button class="btn-primary" id="btn-again">새 학습 시작</button>
       <button class="btn-secondary" id="btn-home-done">홈으로</button>
     </div>`;
   }
@@ -270,9 +288,21 @@ const App = (() => {
     }
 
     if (state.screen === 'study') {
-      el('card').addEventListener('click', () => {
+      const card = el('card');
+      let touchStartX = 0;
+
+      card.addEventListener('click', () => {
         if (!state.flipped) { state.flipped = true; render(); }
       });
+      card.addEventListener('touchstart', e => {
+        touchStartX = e.touches[0].clientX;
+      }, { passive: true });
+      card.addEventListener('touchend', e => {
+        if (!state.flipped) return;
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(dx) > 60) answer(dx > 0);
+      });
+
       el('btn-home').addEventListener('click', () => {
         state.screen = 'home'; render();
       });
@@ -283,6 +313,8 @@ const App = (() => {
     }
 
     if (state.screen === 'done') {
+      const btnRetry = el('btn-retry');
+      if (btnRetry) btnRetry.addEventListener('click', retryWrong);
       el('btn-again').addEventListener('click', startSession);
       el('btn-home-done').addEventListener('click', () => { state.screen = 'home'; render(); });
     }
@@ -304,6 +336,7 @@ const App = (() => {
     state.flipped = false;
     state.sessionCorrect = 0;
     state.sessionTotal = 0;
+    state.sessionWrong = [];
     render();
   }
 
@@ -311,14 +344,31 @@ const App = (() => {
     const card = state.queue[state.queueIndex];
     SM2.review(card.id, correct ? 4 : 1);
     state.sessionTotal++;
-    if (correct) state.sessionCorrect++;
+    if (correct) {
+      state.sessionCorrect++;
+    } else {
+      state.sessionWrong.push(card);
+    }
 
     state.queueIndex++;
     state.flipped = false;
 
     if (state.queueIndex >= state.queue.length) {
       state.screen = 'done';
+      SM2.recordStreak();
     }
+    render();
+  }
+
+  function retryWrong() {
+    const wrong = state.sessionWrong;
+    state.screen = 'study';
+    state.queue = shuffle([...wrong]);
+    state.queueIndex = 0;
+    state.flipped = false;
+    state.sessionCorrect = 0;
+    state.sessionTotal = 0;
+    state.sessionWrong = [];
     render();
   }
 

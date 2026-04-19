@@ -87,5 +87,27 @@ const SM2 = (() => {
     localStorage.removeItem(STORAGE_KEY);
   }
 
-  return { review, isDue, isNew, getDueCards, getNewCards, getStats, resetAll, loadState };
+  function recordStreak() {
+    const t = today();
+    let s;
+    try { s = JSON.parse(localStorage.getItem('hanja_streak') || 'null'); } catch { s = null; }
+    if (!s) s = { lastDate: null, count: 0 };
+    if (s.lastDate === t) return;
+    const prev = new Date(); prev.setDate(prev.getDate() - 1);
+    const yStr = prev.toISOString().split('T')[0];
+    s.count = s.lastDate === yStr ? s.count + 1 : 1;
+    s.lastDate = t;
+    localStorage.setItem('hanja_streak', JSON.stringify(s));
+  }
+
+  function getStreak() {
+    let s;
+    try { s = JSON.parse(localStorage.getItem('hanja_streak') || 'null'); } catch { s = null; }
+    if (!s) return 0;
+    const prev = new Date(); prev.setDate(prev.getDate() - 1);
+    const yStr = prev.toISOString().split('T')[0];
+    return (s.lastDate === today() || s.lastDate === yStr) ? s.count : 0;
+  }
+
+  return { review, isDue, isNew, getDueCards, getNewCards, getStats, resetAll, loadState, recordStreak, getStreak };
 })();

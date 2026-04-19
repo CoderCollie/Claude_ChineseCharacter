@@ -79,6 +79,64 @@ html, body {
   letter-spacing: .04em;
 }
 
+.streak-badge {
+  font-size: .75rem;
+  font-weight: 700;
+  color: #ea580c;
+  background: #fff7ed;
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .streak-badge { background: #431407; color: #fb923c; }
+}
+
+/* ── Level Progress ─────────────────────────────────────────────────────────── */
+.progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.lv-prog-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lv-prog-label {
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.lv-prog-track {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.lv-prog-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 99px;
+  transition: width .4s ease;
+}
+
+.lv-prog-num {
+  font-size: .65rem;
+  color: var(--text-muted);
+  width: 44px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
 .btn-guide {
   width: 30px;
   height: 30px;
@@ -447,6 +505,26 @@ html, body {
 .done-screen h2 { font-size: 1.5rem; font-weight: 800; }
 .done-stats { display: flex; gap: 12px; width: 100%; margin-bottom: 8px; }
 .done-screen .btn-primary { margin-top: 8px; }
+
+.btn-retry {
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 700;
+  border: 2px solid var(--wrong);
+  background: #fee2e2;
+  color: var(--wrong);
+  cursor: pointer;
+  margin-bottom: 6px;
+  transition: opacity .15s;
+}
+
+.btn-retry:active { opacity: .7; }
+
+@media (prefers-color-scheme: dark) {
+  .btn-retry { background: #450a0a; color: #fca5a5; border-color: #fca5a5; }
+}
 
 /* ── History ───────────────────────────────────────────────────────────────── */
 .history-screen { padding: 0; }
