@@ -1,4 +1,4 @@
-const CACHE = 'hanja-v6';
+const CACHE = 'hanja-v7';
 const ASSETS = [
   '/Claude_ChineseCharacter/',
   '/Claude_ChineseCharacter/index.html',
@@ -19,7 +19,6 @@ const ASSETS = [
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
@@ -29,6 +28,12 @@ self.addEventListener('activate', e => {
     )
   );
   self.clients.claim();
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data === 'skipWaiting') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', e => {

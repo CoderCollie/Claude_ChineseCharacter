@@ -317,6 +317,54 @@ html, body {
 .stat-box.clickable { cursor: pointer; }
 .stat-box.clickable:active { opacity: .7; }
 
+/* ── Update Banner ─────────────────────────────────────────────────────────── */
+.update-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  background: var(--primary);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.3);
+  z-index: 101;
+  animation: slideUp 0.4s ease-out;
+}
+
+.update-banner span { font-size: 0.9rem; font-weight: 600; }
+.update-banner button {
+  background: #fff;
+  color: var(--primary);
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ── Settings ──────────────────────────────────────────────────────────────── */
+.setting-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.setting-actions .btn-secondary {
+  width: 100%;
+  justify-content: center;
+}
+
 .stat-num {
   font-size: 1.6rem;
   font-weight: 800;

@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v2.8';
+const APP_VERSION = 'v3.0';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -14,6 +14,8 @@ const App = (() => {
     sessionCorrect: 0,
     sessionTotal: 0,
     sessionWrong: [],
+    newVersionAvailable: false,
+    swRegistration: null
   };
 
   function el(id) { return document.getElementById(id); }
@@ -56,6 +58,7 @@ const App = (() => {
         <h1 class="app-title">漢字 카드</h1>
         <div class="title-actions">
           ${streak > 0 ? `<span class="streak-badge">🔥 ${streak}일째</span>` : ''}
+          <button class="btn-icon" id="btn-settings">⚙️</button>
           <button class="btn-guide" id="btn-guide">?</button>
           <span class="version-badge">${APP_VERSION}</span>
         </div>
@@ -92,8 +95,41 @@ const App = (() => {
       <button class="btn-primary" id="btn-start" ${sessionSize === 0 ? 'disabled' : ''}>
         ${sessionSize === 0 ? '오늘의 학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}
       </button>
+
+      ${state.newVersionAvailable ? `
+        <div class="update-banner">
+          <span>새로운 버전이 있습니다!</span>
+          <button id="btn-update">업데이트</button>
+        </div>
+      ` : ''}
     </div>
 
+    <!-- 설정 모달 -->
+    <div class="modal-overlay hidden" id="settings-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>설정 및 데이터 관리</h2>
+          <button class="btn-icon" id="btn-close-settings">✕</button>
+        </div>
+        <div class="modal-body">
+          <section class="guide-section">
+            <h3>데이터 백업/복원</h3>
+            <p class="guide-note">사파리 브라우저와 홈 화면 앱(PWA)은 저장소가 다릅니다. 아래 기능을 이용해 데이터를 옮겨보세요.</p>
+            <div class="setting-actions">
+              <button class="btn-secondary" id="btn-export">내보내기 (Backup)</button>
+              <button class="btn-secondary" id="btn-import">불러오기 (Restore)</button>
+              <input type="file" id="file-input" style="display:none" accept=".json">
+            </div>
+          </section>
+          <section class="guide-section">
+            <h3>초기화</h3>
+            <button class="btn-wrong" id="btn-reset" style="width:100%">모든 학습 기록 삭제</button>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- 도움말 모달 -->
     <div class="modal-overlay hidden" id="guide-overlay">
       <div class="modal">
         <div class="modal-header">
@@ -183,11 +219,8 @@ const App = (() => {
     const smState = SM2.loadState();
     const studied = HANJA_DATA.filter(h => smState[h.id]);
 
-    // 잘 아는 카드: 연속 정답 2회 이상 (repetition >= 2)
     const strong = studied.filter(h => smState[h.id].repetition >= 2);
-    // 헷갈리는 카드: 마지막 답이 몰랐다였거나(repetition===0) efactor가 낮음
     const weak = studied.filter(h => smState[h.id].repetition === 0 || smState[h.id].efactor < 2.0);
-    // 학습 중: 나머지 (repetition===1, efactor 정상)
     const learning = studied.filter(h => {
       const s = smState[h.id];
       return s.repetition === 1 && s.efactor >= 2.0;
@@ -253,54 +286,54 @@ const App = (() => {
       const btnStart = el('btn-start');
       if (btnStart) btnStart.addEventListener('click', startSession);
 
-      el('btn-guide').addEventListener('click', () => {
-        el('guide-overlay').classList.remove('hidden');
-      });
-      el('btn-close-guide').addEventListener('click', () => {
-        el('guide-overlay').classList.add('hidden');
-      });
-      el('guide-overlay').addEventListener('click', e => {
-        if (e.target === el('guide-overlay')) el('guide-overlay').classList.add('hidden');
-      });
-      el('btn-history').addEventListener('click', () => {
-        state.screen = 'history'; render();
+      el('btn-guide').addEventListener('click', () => { el('guide-overlay').classList.remove('hidden'); });
+      el('btn-close-guide').addEventListener('click', () => { el('guide-overlay').classList.add('hidden'); });
+      
+      el('btn-settings').addEventListener('click', () => { el('settings-overlay').classList.remove('hidden'); });
+      el('btn-close-settings').addEventListener('click', () => { el('settings-overlay').classList.add('hidden'); });
+
+      el('btn-history').addEventListener('click', () => { state.screen = 'history'; render(); });
+      
+      if (el('btn-update')) {
+        el('btn-update').addEventListener('click', () => {
+          if (state.swRegistration && state.swRegistration.waiting) {
+            state.swRegistration.waiting.postMessage('skipWaiting');
+          }
+        });
+      }
+
+      el('btn-export').addEventListener('click', exportData);
+      el('btn-import').addEventListener('click', () => el('file-input').click());
+      el('file-input').addEventListener('change', importData);
+      el('btn-reset').addEventListener('click', () => {
+        if (confirm('모든 학습 데이터를 초기화하시겠습니까? 복구할 수 없습니다.')) {
+          SM2.resetAll();
+          location.reload();
+        }
       });
     }
 
     if (state.screen === 'history') {
-      el('btn-back').addEventListener('click', () => {
-        state.screen = 'home'; render();
-      });
+      el('btn-back').addEventListener('click', () => { state.screen = 'home'; render(); });
     }
 
     if (state.screen === 'study') {
       const card = el('card');
       let touchStartX = 0;
-
-      card.addEventListener('click', () => {
-        if (!state.flipped) { state.flipped = true; render(); }
-      });
-      card.addEventListener('touchstart', e => {
-        touchStartX = e.touches[0].clientX;
-      }, { passive: true });
+      card.addEventListener('click', () => { if (!state.flipped) { state.flipped = true; render(); } });
+      card.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
       card.addEventListener('touchend', e => {
         if (!state.flipped) return;
         const dx = e.changedTouches[0].clientX - touchStartX;
         if (Math.abs(dx) > 60) answer(dx > 0);
       });
-
-      el('btn-home').addEventListener('click', () => {
-        state.screen = 'home'; render();
-      });
-      const btnRight = el('btn-right');
-      const btnWrong = el('btn-wrong');
-      if (btnRight) btnRight.addEventListener('click', () => answer(true));
-      if (btnWrong) btnWrong.addEventListener('click', () => answer(false));
+      el('btn-home').addEventListener('click', () => { state.screen = 'home'; render(); });
+      if (el('btn-right')) el('btn-right').addEventListener('click', () => answer(true));
+      if (el('btn-wrong')) el('btn-wrong').addEventListener('click', () => answer(false));
     }
 
     if (state.screen === 'done') {
-      const btnRetry = el('btn-retry');
-      if (btnRetry) btnRetry.addEventListener('click', retryWrong);
+      if (el('btn-retry')) el('btn-retry').addEventListener('click', retryWrong);
       el('btn-again').addEventListener('click', startSession);
       el('btn-home-done').addEventListener('click', () => { state.screen = 'home'; render(); });
     }
@@ -308,13 +341,42 @@ const App = (() => {
 
   // ── Logic ──────────────────────────────────────────────────────────────────
 
+  function exportData() {
+    const data = {
+      sm2: localStorage.getItem('hanja_sm2_state'),
+      streak: localStorage.getItem('hanja_sm2_streak')
+    };
+    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `hanja_backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+  }
+
+  function importData(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const data = JSON.parse(evt.target.result);
+        if (data.sm2) localStorage.setItem('hanja_sm2_state', data.sm2);
+        if (data.streak) localStorage.setItem('hanja_sm2_streak', data.streak);
+        alert('데이터 복원이 완료되었습니다!');
+        location.reload();
+      } catch (err) {
+        alert('잘못된 파일 형식입니다.');
+      }
+    };
+    reader.readAsText(file);
+  }
+
   function startSession() {
     const due = SM2.getDueCards(HANJA_DATA);
     const newCards = SM2.getNewCards(HANJA_DATA).slice(0, NEW_PER_SESSION);
     const queue = shuffle([...due, ...newCards]);
-
     if (queue.length === 0) { render(); return; }
-
     state.screen = 'study';
     state.queue = queue;
     state.queueIndex = 0;
@@ -329,15 +391,10 @@ const App = (() => {
     const card = state.queue[state.queueIndex];
     SM2.review(card.id, correct ? 4 : 1);
     state.sessionTotal++;
-    if (correct) {
-      state.sessionCorrect++;
-    } else {
-      state.sessionWrong.push(card);
-    }
-
+    if (correct) state.sessionCorrect++;
+    else state.sessionWrong.push(card);
     state.queueIndex++;
     state.flipped = false;
-
     if (state.queueIndex >= state.queue.length) {
       state.screen = 'done';
       SM2.recordStreak();
@@ -368,7 +425,26 @@ const App = (() => {
   function init() {
     render();
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
+      navigator.serviceWorker.register('sw.js').then(reg => {
+        state.swRegistration = reg;
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              state.newVersionAvailable = true;
+              render();
+            }
+          });
+        });
+      });
+
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          window.location.reload();
+          refreshing = true;
+        }
+      });
     }
   }
 
