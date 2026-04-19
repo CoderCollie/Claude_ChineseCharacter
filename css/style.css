@@ -237,7 +237,29 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
 .card-hint { font-size: .85rem; color: var(--text-muted); opacity: .6; }
 
 .eumhun { font-size: 1.4rem; font-weight: 600; color: var(--text); text-align: center; }
+
+.card-busu {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: rgba(37, 99, 235, 0.08);
+  padding: 4px 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
 .card-words { font-size: 0.95rem; color: var(--text-muted); text-align: center; background: var(--bg); padding: 8px 16px; border-radius: 12px; margin-top: 4px; }
+
+.card-similar {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 12px;
+  background: var(--bg);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border-left: 3px solid var(--border);
+  text-align: center;
+}
 .card-level { font-size: .75rem; color: var(--text-muted); background: var(--bg); padding: 4px 10px; border-radius: 8px; margin-top: 20px; font-weight: 600; }
 
 /* ── Actions ───────────────────────────────────────────────────────────────── */

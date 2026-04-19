@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v3.4.2';
+const APP_VERSION = 'v4.0';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -213,7 +213,9 @@ const App = (() => {
           <div class="card-back">
             <div class="hanja-char">${card.char}</div>
             <div class="eumhun">${card.eumhun}</div>
+            ${card.busu ? `<div class="card-busu">부수: ${card.busu}</div>` : ''}
             ${card.words ? `<div class="card-words">${card.words.join(', ')}</div>` : ''}
+            ${card.similar ? `<div class="card-similar">비슷한 한자: ${card.similar.join(', ')}</div>` : ''}
             <div class="card-level">${LEVEL_LABELS[card.level]}</div>
           </div>
         </div>
