@@ -1,14 +1,13 @@
 'use strict';
 
-const APP_VERSION = 'v1.6';
+const APP_VERSION = 'v1.8';
 
 const App = (() => {
-  const NEW_PER_SESSION = 20;
+  const NEW_PER_SESSION = 10;
   const LEVELS = [8, 7, 6, 5, 4, 3, 2, 1];
 
   let state = {
     screen: 'home',
-    selectedLevels: [8, 7, 6, 5, 4, 3],
     queue: [],
     queueIndex: 0,
     flipped: false,
@@ -34,20 +33,11 @@ const App = (() => {
   function renderHome() {
     const stats = SM2.getStats();
     const smState = SM2.loadState();
-    const filtered = getByLevels(state.selectedLevels);
-    const due = SM2.getDueCards(filtered).length;
-    const newAvail = SM2.getNewCards(filtered).length;
+    const due = SM2.getDueCards(HANJA_DATA).length;
+    const newAvail = SM2.getNewCards(HANJA_DATA).length;
     const streak = SM2.getStreak();
 
-    const levelBtns = LEVELS.map(lv => {
-      const sel = state.selectedLevels.includes(lv);
-      const count = HANJA_DATA.filter(h => h.level === lv).length;
-      return `<button class="lv-btn${sel ? ' selected' : ''}" data-lv="${lv}">
-        ${LEVEL_LABELS[lv]}<span class="lv-count">${count}</span>
-      </button>`;
-    }).join('');
-
-    const progressRows = state.selectedLevels.slice().sort((a,b) => b - a).map(lv => {
+    const progressRows = LEVELS.map(lv => {
       const total = HANJA_DATA.filter(h => h.level === lv).length;
       const learned = HANJA_DATA.filter(h => h.level === lv && smState[h.id]).length;
       const pct = total > 0 ? Math.round(learned / total * 100) : 0;
@@ -71,8 +61,7 @@ const App = (() => {
         </div>
       </div>
       <section class="level-section">
-        <p class="section-label">급수 선택</p>
-        <div class="level-grid">${levelBtns}</div>
+        <p class="section-label">학습 진도</p>
         <div class="progress-list">${progressRows}</div>
       </section>
       <section class="stats-section">
@@ -107,7 +96,7 @@ const App = (() => {
           <section class="guide-section">
             <h3>기본 사용법</h3>
             <ol>
-              <li>급수를 선택하고 <strong>학습 시작</strong></li>
+              <li><strong>학습 시작</strong>을 누르면 쉬운 급수(8급)부터 순서대로 학습이 진행돼요</li>
               <li>한자 카드를 탭해서 음훈 확인</li>
               <li>스스로 알았으면 <strong style="color:#22c55e">알았다</strong>, 몰랐으면 <strong style="color:#ef4444">몰랐다</strong></li>
             </ol>
@@ -133,9 +122,9 @@ const App = (() => {
           <section class="guide-section">
             <h3>매일 학습 루틴</h3>
             <ul>
-              <li>앱을 열면 <strong>복습</strong> 카드 + <strong>신규</strong> 카드(최대 20장)가 자동으로 준비돼요</li>
+              <li>앱을 열면 <strong>복습</strong> 카드 + <strong>신규</strong> 카드(최대 10장)가 자동으로 준비돼요</li>
               <li>매일 꾸준히 하면 기억에 오래 남아요</li>
-              <li>신규 카드를 줄이거나 특정 급수만 집중 학습도 가능해요</li>
+              <li>쉬운 한자부터 마스터하면 다음 급수 한자가 자동으로 등장해요</li>
             </ul>
           </section>
         </div>
@@ -252,18 +241,6 @@ const App = (() => {
 
   function bindEvents() {
     if (state.screen === 'home') {
-      document.querySelectorAll('.lv-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const lv = parseInt(btn.dataset.lv);
-          if (state.selectedLevels.includes(lv)) {
-            if (state.selectedLevels.length > 1)
-              state.selectedLevels = state.selectedLevels.filter(l => l !== lv);
-          } else {
-            state.selectedLevels = [...state.selectedLevels, lv];
-          }
-          render();
-        });
-      });
       const btnStart = el('btn-start');
       if (btnStart) btnStart.addEventListener('click', startSession);
 
@@ -323,9 +300,8 @@ const App = (() => {
   // ── Logic ──────────────────────────────────────────────────────────────────
 
   function startSession() {
-    const filtered = getByLevels(state.selectedLevels);
-    const due = SM2.getDueCards(filtered);
-    const newCards = SM2.getNewCards(filtered).slice(0, NEW_PER_SESSION);
+    const due = SM2.getDueCards(HANJA_DATA);
+    const newCards = SM2.getNewCards(HANJA_DATA).slice(0, NEW_PER_SESSION);
     const queue = shuffle([...due, ...newCards]);
 
     if (queue.length === 0) { render(); return; }
