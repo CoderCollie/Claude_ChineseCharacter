@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v1.8';
+const APP_VERSION = 'v1.9';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -159,6 +159,7 @@ const App = (() => {
           <div class="card-back">
             <div class="hanja-char">${card.char}</div>
             <div class="eumhun">${card.eumhun}</div>
+            ${card.words ? `<div class="card-words">${card.words.join(', ')}</div>` : ''}
             <div class="card-level">${LEVEL_LABELS[card.level]}</div>
           </div>
         </div>

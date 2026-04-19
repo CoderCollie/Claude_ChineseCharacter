@@ -440,6 +440,16 @@ html, body {
   text-align: center;
 }
 
+.card-words {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  text-align: center;
+  background: var(--bg);
+  padding: 8px 16px;
+  border-radius: 12px;
+  margin-top: 4px;
+}
+
 .card-level {
   font-size: .75rem;
   color: var(--text-muted);
