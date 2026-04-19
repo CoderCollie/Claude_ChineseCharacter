@@ -1,9 +1,17 @@
-const CACHE = 'hanja-v5';
+const CACHE = 'hanja-v6';
 const ASSETS = [
   '/Claude_ChineseCharacter/',
   '/Claude_ChineseCharacter/index.html',
   '/Claude_ChineseCharacter/css/style.css',
-  '/Claude_ChineseCharacter/js/data.js',
+  '/Claude_ChineseCharacter/js/data/level8.js',
+  '/Claude_ChineseCharacter/js/data/level7.js',
+  '/Claude_ChineseCharacter/js/data/level6.js',
+  '/Claude_ChineseCharacter/js/data/level5.js',
+  '/Claude_ChineseCharacter/js/data/level4.js',
+  '/Claude_ChineseCharacter/js/data/level3.js',
+  '/Claude_ChineseCharacter/js/data/level2.js',
+  '/Claude_ChineseCharacter/js/data/level1.js',
+  '/Claude_ChineseCharacter/js/data/index.js',
   '/Claude_ChineseCharacter/js/sm2.js',
   '/Claude_ChineseCharacter/js/app.js',
   '/Claude_ChineseCharacter/manifest.json'
