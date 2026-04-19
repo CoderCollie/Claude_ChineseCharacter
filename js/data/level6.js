@@ -146,7 +146,7 @@ const HANJA_L6 = [
   {id:"h294",level:6,char:"形",eumhun:"모양 형",words:["형태(形態)","형식(形式)"]},
   {id:"h295",level:6,char:"號",eumhun:"이름 호",words:["번호(番號)","신호(信號)"]},
   {id:"h296",level:6,char:"花",eumhun:"꽃 화",words:["화단(花壇)","화려(華麗)"]},
-  {id:"h297",level:6,char:"話",eumhun:"대화(對話)","전화(電話)"]},
+  {id:"h297",level:6,char:"話",eumhun:"말씀 화",words:["대화(對話)","전화(電話)"]},
   {id:"h298",level:6,char:"活",eumhun:"살 활",words:["활동(活動)","활발(活潑)"]},
   {id:"h299",level:6,char:"孝",eumhun:"효도 효",words:["효도(孝道)","효자(孝子)"]},
   {id:"h300",level:6,char:"後",eumhun:"뒤 후",words:["오후(午後)","후반(後半)"]},

@@ -18,7 +18,7 @@ const HANJA_L7 = [
   {id:"h066",level:7,char:"食",eumhun:"밥 식",words:["식사(食事)","음식(飮食)"]},
   {id:"h067",level:7,char:"時",eumhun:"때 시",words:["시간(時間)","시계(時計)"]},
   {id:"h068",level:7,char:"來",eumhun:"올 래",words:["미래(未來)","내년(來年)"]},
-  {id:"h069",level:7,char:"Name",eumhun:"이름 명",words:["성명(姓名)","명함(名銜)"]},
+  {id:"h069",level:7,char:"名",eumhun:"이름 명",words:["성명(姓名)","명함(名銜)"]},
   {id:"h070",level:7,char:"色",eumhun:"빛 색",words:["색깔(色)","특색(特色)"]},
   {id:"h071",level:7,char:"林",eumhun:"수풀 림",words:["산림(山林)","임업(林業)"]},
   {id:"h072",level:7,char:"正",eumhun:"바를 정",words:["정직(正直)","정답(正答)"]},

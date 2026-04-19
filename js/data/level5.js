@@ -78,7 +78,7 @@ const HANJA_L5 = [
   {id:"h376",level:5,char:"背",eumhun:"등 배",words:["배경(背景)","배신(背信)"]},
   {id:"h377",level:5,char:"倍",eumhun:"곱 배",words:["배수(倍數)","수백 배(倍)"]},
   {id:"h378",level:5,char:"白",eumhun:"흰 백",words:["공백(空白)","단백질(蛋白質)"]},
-  {id:"h379",level:5,char:"법",eumhun:"법 법",words:["법률(法律)","방법(方法)"]},
+  {id:"h379",level:5,char:"法",eumhun:"법 법",words:["법률(法律)","방법(方法)"]},
   {id:"h380",level:5,char:"變",eumhun:"변할 변",words:["변화(變化)","변동(變動)"]},
   {id:"h381",level:5,char:"保",eumhun:"보전할 보",words:["보호(保護)","보존(保存)"]},
   {id:"h382",level:5,char:"報",eumhun:"갚을 보",words:["보고(報告)","정보(情報)"]},
