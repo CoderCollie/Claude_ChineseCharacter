@@ -1,4 +1,35 @@
-# Gemini CLI Foundation Mandates
+# 漢字 카드 프로젝트 명세 (GEMINI.md)
 
-- **Version Management**: Always bump the `APP_VERSION` constant in `js/app.js` whenever new features or significant data updates are pushed to the repository.
-- **Data Updates**: When adding example words for new levels, ensure they are practical and commonly used in everyday language.
+이 문서는 프로젝트의 핵심 사양과 개발 원칙을 담고 있습니다. 새로운 기능 추가나 수정 시 이 명세를 최우선으로 준수합니다.
+
+## 1. 개발 기본 원칙
+- **버전 관리**: 새로운 기능 추가나 중요한 데이터 업데이트 시 `js/app.js`의 `APP_VERSION` 상수를 반드시 업데이트합니다. (현재 버전: v3.4.2)
+- **데이터 표준**: 모든 한자 데이터(8급~1급)는 `words` 속성을 포함해야 하며, 형식은 `["단어(漢字)", ...]`를 준수합니다.
+- **언어**: UI 및 사용자 안내 문구는 한국어를 기본으로 합니다.
+
+## 2. 핵심 로직 및 알고리즘
+- **간격 반복(SRS)**: Anki와 동일한 **SM-2 (SuperMemo-2)** 알고리즘을 사용하여 복습 주기를 계산합니다.
+- **자동 진급 시스템**: 사용자가 급수를 수동으로 선택하지 않고, 8급부터 1급까지 아직 학습하지 않은 가장 낮은 급수의 한자를 자동으로 배정합니다.
+- **세션 구성**: 한 세션은 '복습 카드(기한이 도래한 것)'와 '신규 카드(최대 10장)'로 구성됩니다.
+
+## 3. 기술 스택 및 데이터 관리
+- **프론트엔드**: Vanilla JavaScript (ES6+), Pure CSS3 (프레임워크 없음).
+- **데이터 저장**: 브라우저의 `localStorage`를 사용합니다. (`hanja_sm2_state`, `hanja_sm2_streak`)
+- **PWA**: 오프라인 지원 및 설치 기능을 위해 Service Worker(`sw.js`)를 운용합니다.
+- **데이터 백업/복원**: 사파리와 PWA 간의 데이터 독립 문제를 해결하기 위해 JSON 파일 기반의 내보내기/불러오기 기능을 제공합니다.
+
+## 4. UI/UX 디자인 원칙
+- **모바일 최적화**: iOS의 **세이프 에어리어(Safe Area)**를 엄격히 준수합니다. (노치 및 하단 바 간섭 방지)
+- **사용성(Ergonomics)**: 
+  - **대형 버튼**: 학습 시 '알았다', '몰랐다' 버튼을 세로로 길게(48px 패딩) 만들어 한 손 조작을 용이하게 합니다.
+  - **버튼 간격**: 학습 완료 화면 등에서 버튼 간의 여백을 충분히 두어 오클릭을 방지합니다.
+- **업데이트 시스템**: 
+  - 새 버전 감지 시 안내 배너를 표시합니다.
+  - 하단 버전 배지 클릭 시 캐시를 삭제하고 즉시 최신 버전을 가져오는 **강제 업데이트(Force Update)** 기능을 제공합니다.
+- **테마**: 시스템 설정 연동 및 수동 토글이 가능한 다크 모드를 지원합니다.
+
+## 5. 디렉토리 구조
+- `js/data/`: 각 급수별 한자 데이터 (Level 1-8).
+- `js/sm2.js`: SM-2 알고리즘 로직.
+- `js/app.js`: 메인 UI 렌더링 및 이벤트 핸들링.
+- `css/style.css`: 모든 스타일링 및 테마 설정.
