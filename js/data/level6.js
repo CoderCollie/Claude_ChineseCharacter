@@ -70,4 +70,12 @@ const HANJA_L6 = [
   {id:"h296",level:6,char:"花",eumhun:"꽃 화"},{id:"h297",level:6,char:"話",eumhun:"말할 화"},
   {id:"h298",level:6,char:"活",eumhun:"살 활"},{id:"h299",level:6,char:"孝",eumhun:"효도 효"},
   {id:"h300",level:6,char:"後",eumhun:"뒤 후"},
+  // ── CSV 신규 추가 19자 ──
+  {id:"h1271",level:6,char:"角",eumhun:"각"},{id:"h1272",level:6,char:"開",eumhun:"개"},{id:"h1273",level:6,char:"京",eumhun:"경"},
+  {id:"h1274",level:6,char:"區",eumhun:"구"},{id:"h1275",level:6,char:"郡",eumhun:"군"},{id:"h1276",level:6,char:"樂",eumhun:"락"},
+  {id:"h1277",level:6,char:"綠",eumhun:"록"},{id:"h1278",level:6,char:"李",eumhun:"리"},{id:"h1279",level:6,char:"米",eumhun:"미"},
+  {id:"h1280",level:6,char:"朴",eumhun:"박"},{id:"h1281",level:6,char:"席",eumhun:"석"},{id:"h1282",level:6,char:"孫",eumhun:"손"},
+  {id:"h1283",level:6,char:"式",eumhun:"식"},{id:"h1284",level:6,char:"運",eumhun:"운"},{id:"h1285",level:6,char:"園",eumhun:"원"},
+  {id:"h1286",level:6,char:"油",eumhun:"유"},{id:"h1287",level:6,char:"在",eumhun:"재"},{id:"h1288",level:6,char:"晝",eumhun:"주"},
+  {id:"h1289",level:6,char:"畫",eumhun:"화"},
 ];

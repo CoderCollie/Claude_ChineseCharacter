@@ -15,4 +15,6 @@ const HANJA_L8 = [
   {id:"h043",level:8,char:"王",eumhun:"임금 왕"},{id:"h044",level:8,char:"門",eumhun:"문 문"},
   {id:"h045",level:8,char:"口",eumhun:"입 구"},{id:"h046",level:8,char:"手",eumhun:"손 수"},{id:"h047",level:8,char:"足",eumhun:"발 족"},{id:"h048",level:8,char:"耳",eumhun:"귀 이"},{id:"h049",level:8,char:"目",eumhun:"눈 목"},
   {id:"h050",level:8,char:"白",eumhun:"흰 백"},
+  // ── CSV 신규 추가 3자 ──
+  {id:"h1261",level:8,char:"金",eumhun:"금"},{id:"h1262",level:8,char:"靑",eumhun:"청"},{id:"h1263",level:8,char:"韓",eumhun:"한"},
 ];

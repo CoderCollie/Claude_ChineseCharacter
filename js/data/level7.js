@@ -39,4 +39,8 @@ const HANJA_L7 = [
   {id:"h146",level:7,char:"書",eumhun:"글 서"},{id:"h147",level:7,char:"讀",eumhun:"읽을 독"},
   {id:"h148",level:7,char:"英",eumhun:"꽃부리 영"},{id:"h149",level:7,char:"語",eumhun:"말씀 어"},
   {id:"h150",level:7,char:"民",eumhun:"백성 민"},
+  // ── CSV 신규 추가 7자 ──
+  {id:"h1264",level:7,char:"車",eumhun:"거"},{id:"h1265",level:7,char:"夫",eumhun:"부"},{id:"h1266",level:7,char:"不",eumhun:"불"},
+  {id:"h1267",level:7,char:"夕",eumhun:"석"},{id:"h1268",level:7,char:"姓",eumhun:"성"},{id:"h1269",level:7,char:"午",eumhun:"오"},
+  {id:"h1270",level:7,char:"邑",eumhun:"읍"},
 ];
