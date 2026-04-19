@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v3.3';
+const APP_VERSION = 'v3.4';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -103,7 +103,7 @@ const App = (() => {
       </button>
 
       <div class="home-footer">
-        <span class="version-badge clickable" id="btn-version" title="강제 업데이트">${APP_VERSION}</span>
+        <span class="version-badge clickable" id="btn-version" title="강제 업데이트">${APP_VERSION} (force update)</span>
       </div>
 
       ${state.newVersionAvailable ? `
