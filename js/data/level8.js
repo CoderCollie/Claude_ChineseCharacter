@@ -49,7 +49,7 @@ const HANJA_L8 = [
   {id:"h048",level:8,char:"耳",eumhun:"귀 이",words:["이목(耳目)","이비인후과(耳鼻咽喉科)"],busu:"耳(귀이)",similar:[]},
   {id:"h049",level:8,char:"目",eumhun:"눈 목",words:["목적(目的)","과목(科目)"],busu:"目(눈목)",similar:[]},
   {id:"h050",level:8,char:"白",eumhun:"흰 백",words:["백색(白色)","여백(餘白)"],busu:"白(흰백)",similar:[]},
-  {id:"h1261",level:8,char:"金",eumhun:"금",words:["금메달(金메달)","금반지(金반지)"],busu:"확인중",similar:[]},
-  {id:"h1262",level:8,char:"靑",eumhun:"청",words:["청춘(靑春)","청색(靑色)"],busu:"靑(푸를청)",similar:[]},
-  {id:"h1263",level:8,char:"韓",eumhun:"한",words:["한국(韓國)","한복(韓복)"],busu:"확인중",similar:[]}
+  {id:"h1261",level:8,char:"金",eumhun:"쇠 금",words:["금메달(金메달)","금반지(金반지)"],busu:"확인중",similar:[]},
+  {id:"h1262",level:8,char:"靑",eumhun:"푸를 청",words:["청춘(靑春)","청색(靑色)"],busu:"靑(푸를청)",similar:[]},
+  {id:"h1263",level:8,char:"韓",eumhun:"나라이름 한",words:["한국(韓國)","한복(韓복)"],busu:"확인중",similar:[]}
 ];

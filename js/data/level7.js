@@ -100,11 +100,11 @@ const HANJA_L7 = [
   {id:"h148",level:7,char:"英",eumhun:"꽃부리 영",words:["영어(英語)","영웅(英雄)"],busu:"艸(풀초)",similar:[]},
   {id:"h149",level:7,char:"語",eumhun:"말씀 어",words:["언어(言語)","단어(單語)"],busu:"확인중",similar:[]},
   {id:"h150",level:7,char:"民",eumhun:"백성 민",words:["국민(國民)","민주(民主)"],busu:"氏(각시씨)",similar:[]},
-  {id:"h1264",level:7,char:"車",eumhun:"거",words:["자전거(自轉車)","거마비(車馬費)"],busu:"확인중",similar:[]},
-  {id:"h1265",level:7,char:"夫",eumhun:"부",words:["부부(夫婦)","어부(漁夫)"],busu:"大(큰대)",similar:["天(하늘천)","失(잃을실)"]},
-  {id:"h1266",level:7,char:"不",eumhun:"불",words:["불안(不安)","부족(不足)"],busu:"확인중",similar:[]},
-  {id:"h1267",level:7,char:"夕",eumhun:"석",words:["석양(夕陽)","추석(秋夕)"],busu:"夕(저녁석)",similar:[]},
-  {id:"h1268",level:7,char:"姓",eumhun:"성",words:["성씨(姓氏)","성명(姓名)"],busu:"女(계집녀)",similar:[]},
-  {id:"h1269",level:7,char:"午",eumhun:"오",words:["오전(午前)","정오(正午)"],busu:"十(열십)",similar:["牛(소우)"]},
-  {id:"h1270",level:7,char:"邑",eumhun:"읍",words:["읍내(邑內)","면읍(面邑)"],busu:"邑(고을읍)",similar:[]}
+  {id:"h1264",level:7,char:"車",eumhun:"수레 거",words:["자전거(自轉車)","거마비(車馬費)"],busu:"확인중",similar:[]},
+  {id:"h1265",level:7,char:"夫",eumhun:"지아비 부",words:["부부(夫婦)","어부(漁夫)"],busu:"大(큰대)",similar:["天(하늘천)","失(잃을실)"]},
+  {id:"h1266",level:7,char:"不",eumhun:"아닐 불",words:["불안(不安)","부족(不足)"],busu:"확인중",similar:[]},
+  {id:"h1267",level:7,char:"夕",eumhun:"저녁 석",words:["석양(夕陽)","추석(秋夕)"],busu:"夕(저녁석)",similar:[]},
+  {id:"h1268",level:7,char:"姓",eumhun:"성씨 성",words:["성씨(姓氏)","성명(姓名)"],busu:"女(계집녀)",similar:[]},
+  {id:"h1269",level:7,char:"午",eumhun:"낮 오",words:["오전(午前)","정오(正午)"],busu:"十(열십)",similar:["牛(소우)"]},
+  {id:"h1270",level:7,char:"邑",eumhun:"고을 읍",words:["읍내(邑內)","면읍(面邑)"],busu:"邑(고을읍)",similar:[]}
 ];
