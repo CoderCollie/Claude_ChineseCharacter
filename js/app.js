@@ -1,9 +1,10 @@
 'use strict';
 
-const APP_VERSION = 'v4.0.1';
+const APP_VERSION = 'v4.1';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
+  const DUE_PER_SESSION = 10; // 복습 카드도 세션당 10개로 제한
   const LEVELS = [8, 7, 6, 5, 4, 3, 2, 1];
 
   let state = {
@@ -53,7 +54,7 @@ const App = (() => {
       </div>`;
     }).join('');
 
-    const sessionSize = due + Math.min(newAvail, NEW_PER_SESSION);
+    const sessionSize = Math.min(due, DUE_PER_SESSION) + Math.min(newAvail, NEW_PER_SESSION);
 
     return `
     <div class="screen home-screen">
@@ -81,12 +82,12 @@ const App = (() => {
       </section>
 
       <section class="stats-section">
-        <div class="stat-box">
+        <div class="stat-box clickable" id="btn-start-review">
           <span class="stat-num">${due}</span>
           <span class="stat-label">복습</span>
           <span class="stat-desc">다시 볼 한자</span>
         </div>
-        <div class="stat-box">
+        <div class="stat-box clickable" id="btn-start-new">
           <span class="stat-num">${Math.min(newAvail, NEW_PER_SESSION)}</span>
           <span class="stat-label">신규</span>
           <span class="stat-desc">오늘의 목표</span>
@@ -98,7 +99,7 @@ const App = (() => {
         </div>
       </section>
 
-      <button class="btn-primary" id="btn-start" ${sessionSize === 0 ? 'disabled' : ''}>
+      <button class="btn-primary" id="btn-start-all" ${sessionSize === 0 ? 'disabled' : ''}>
         ${sessionSize === 0 ? '오늘의 학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}
       </button>
 
@@ -176,7 +177,7 @@ const App = (() => {
           <section class="guide-section">
             <h3>매일 학습 루틴</h3>
             <ul>
-              <li>앱을 열면 <strong>복습</strong> 카드 + <strong>신규</strong> 카드(최대 10장)가 자동으로 준비돼요</li>
+              <li>앱을 열면 <strong>복습</strong> 카드(최대 10장) + <strong>신규</strong> 카드(최대 10장)가 자동으로 준비돼요</li>
               <li>매일 꾸준히 하면 기억에 오래 남아요</li>
               <li>쉬운 한자부터 마스터하면 다음 급수 한자가 자동으로 등장해요</li>
             </ul>
@@ -295,8 +296,9 @@ const App = (() => {
 
   function bindEvents() {
     if (state.screen === 'home') {
-      const btnStart = el('btn-start');
-      if (btnStart) btnStart.addEventListener('click', startSession);
+      el('btn-start-all').addEventListener('click', () => startSession('all'));
+      el('btn-start-review').addEventListener('click', () => startSession('review'));
+      el('btn-start-new').addEventListener('click', () => startSession('new'));
 
       el('btn-guide').addEventListener('click', () => { el('guide-overlay').classList.remove('hidden'); });
       el('btn-close-guide').addEventListener('click', () => { el('guide-overlay').classList.add('hidden'); });
@@ -358,7 +360,7 @@ const App = (() => {
 
     if (state.screen === 'done') {
       if (el('btn-retry')) el('btn-retry').addEventListener('click', retryWrong);
-      el('btn-again').addEventListener('click', startSession);
+      el('btn-again').addEventListener('click', () => startSession('all'));
       el('btn-home-done').addEventListener('click', () => { state.screen = 'home'; render(); });
     }
   }
@@ -410,11 +412,20 @@ const App = (() => {
     reader.readAsText(file);
   }
 
-  function startSession() {
-    const due = SM2.getDueCards(HANJA_DATA);
-    const newCards = SM2.getNewCards(HANJA_DATA).slice(0, NEW_PER_SESSION);
+  function startSession(mode = 'all') {
+    let due = [];
+    let newCards = [];
+
+    if (mode === 'all' || mode === 'review') {
+      due = SM2.getDueCards(HANJA_DATA).slice(0, DUE_PER_SESSION);
+    }
+    if (mode === 'all' || mode === 'new') {
+      newCards = SM2.getNewCards(HANJA_DATA).slice(0, NEW_PER_SESSION);
+    }
+
     const queue = shuffle([...due, ...newCards]);
     if (queue.length === 0) { render(); return; }
+
     state.screen = 'study';
     state.queue = queue;
     state.queueIndex = 0;
