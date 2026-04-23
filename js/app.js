@@ -361,6 +361,18 @@ const App = (() => {
 
     if (state.screen === 'history') {
       el('btn-back').addEventListener('click', () => { state.screen = 'home'; render(); });
+
+      let touchStartX = 0, touchStartY = 0;
+      const histScreen = document.querySelector('.history-screen');
+      histScreen.addEventListener('touchstart', e => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }, { passive: true });
+      histScreen.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
+        if (dx > 60 && dy < 80) { state.screen = 'home'; render(); }
+      }, { passive: true });
     }
 
     if (state.screen === 'study') {
