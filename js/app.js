@@ -245,11 +245,16 @@ const App = (() => {
       return `<button class="${cls}" data-idx="${i}">${label}</button>`;
     }).join('');
 
+    const acc = SM2.getAccuracy(card.id);
+    const accBadge = acc
+      ? `<span class="badge-acc ${acc.pct < 50 ? 'badge-acc-low' : acc.pct < 80 ? 'badge-acc-mid' : 'badge-acc-high'}">${acc.pct}% (${acc.correct}/${acc.total})</span>`
+      : '';
+
     const cardBody = dir === 'char2eumhun'
-      ? `${isNew ? '<span class="badge-new">NEW</span>' : ''}
+      ? `${isNew ? '<span class="badge-new">NEW</span>' : ''}${accBadge}
          <div class="hanja-char">${card.char}</div>
          <div class="card-level">${LEVEL_LABELS[card.level]}</div>`
-      : `${isNew ? '<span class="badge-new">NEW</span>' : ''}
+      : `${isNew ? '<span class="badge-new">NEW</span>' : ''}${accBadge}
          <div class="card-hint" style="font-size:.8rem;margin-bottom:8px">${LEVEL_LABELS[card.level]}</div>
          <div class="eumhun" style="font-size:1.8rem;font-weight:800">${card.eumhun}</div>
          <div class="card-hint" style="margin-top:12px">한자를 고르세요</div>`;
@@ -276,20 +281,29 @@ const App = (() => {
 
   function renderHistory() {
     const smState = SM2.loadState();
+    const accState = SM2.loadAccuracy();
     const studied = HANJA_DATA.filter(h => smState[h.id]);
 
-    const strong = studied.filter(h => smState[h.id].repetition >= 2);
-    const weak = studied.filter(h => smState[h.id].repetition === 0 || smState[h.id].efactor < 2.0);
+    function accPct(h) {
+      const r = accState[h.id];
+      return r && r.t > 0 ? r.c / r.t : 1;
+    }
+
+    const strong = studied.filter(h => smState[h.id].repetition >= 2).sort((a, b) => accPct(a) - accPct(b));
+    const weak = studied.filter(h => smState[h.id].repetition === 0 || smState[h.id].efactor < 2.0).sort((a, b) => accPct(a) - accPct(b));
     const learning = studied.filter(h => {
       const s = smState[h.id];
       return s.repetition === 1 && s.efactor >= 2.0;
-    });
+    }).sort((a, b) => accPct(a) - accPct(b));
 
     function cardChip(h, type) {
       const s = smState[h.id];
+      const r = accState[h.id];
+      const accText = r && r.t > 0 ? `${Math.round(r.c / r.t * 100)}%` : '';
       return `<div class="hist-chip hist-${type}" title="${h.eumhun} | 다음복습: ${s.dueDate}">
         <span class="hist-char">${h.char}</span>
         <span class="hist-eumhun">${h.eumhun}</span>
+        ${accText ? `<span class="hist-acc">${accText}</span>` : ''}
       </div>`;
     }
 
@@ -514,6 +528,7 @@ const App = (() => {
 
     setTimeout(() => {
       SM2.review(card.id, correct ? 4 : 1);
+      SM2.recordAccuracy(card.id, correct);
       state.sessionTotal++;
       if (correct) state.sessionCorrect++;
       else state.sessionWrong.push(card);

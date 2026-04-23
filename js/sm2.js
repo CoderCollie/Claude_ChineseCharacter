@@ -86,8 +86,31 @@ const SM2 = (() => {
     return hanjaList.filter(h => !state[h.id]);
   }
 
+  const ACC_KEY = 'hanja_accuracy';
+
+  function loadAccuracy() {
+    try { return JSON.parse(localStorage.getItem(ACC_KEY) || '{}'); } catch { return {}; }
+  }
+
+  function recordAccuracy(id, correct) {
+    const acc = loadAccuracy();
+    const r = acc[id] || { c: 0, t: 0 };
+    r.t++;
+    if (correct) r.c++;
+    acc[id] = r;
+    localStorage.setItem(ACC_KEY, JSON.stringify(acc));
+  }
+
+  function getAccuracy(id) {
+    const acc = loadAccuracy();
+    const r = acc[id];
+    if (!r || r.t === 0) return null;
+    return { correct: r.c, total: r.t, pct: Math.round(r.c / r.t * 100) };
+  }
+
   function resetAll() {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(ACC_KEY);
   }
 
   function recordStreak() {
@@ -128,5 +151,5 @@ const SM2 = (() => {
     });
   }
 
-  return { review, isDue, isNew, getDueCards, getNewCards, getWeakCards, getStats, resetAll, loadState, recordStreak, getStreak, getBestStreak };
+  return { review, isDue, isNew, getDueCards, getNewCards, getWeakCards, getStats, resetAll, loadState, recordStreak, getStreak, getBestStreak, recordAccuracy, getAccuracy, loadAccuracy };
 })();
