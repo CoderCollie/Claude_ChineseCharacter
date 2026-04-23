@@ -281,7 +281,7 @@ const HANJA_L1 = [
   {id:"h3431",level:1,char:"擦",eumhun:"문지를 찰",words:["찰(擦)","문지름(찰)"],busu:"확인중",similar:[]},
   {id:"h3432",level:1,char:"塹",eumhun:"구덩이 참",words:["참(塹)","구덩이(참)"],busu:"확인중",similar:[]},
   {id:"h3433",level:1,char:"站",eumhun:"역참 참",words:["참(站)","역(참)"],busu:"확인중",similar:[]},
-  {id:"h3434",level:1,char:"僭",eumhun:"僭越할 참",words:["참(僭)","분수에 넘침(참)"],busu:"확인중",similar:[]},
+  {id:"h3434",level:1,char:"僭",eumhun:"분수 넘을 참",words:["참(僭)","분수에 넘침(참)"],busu:"확인중",similar:[]},
   {id:"h3435",level:1,char:"懺",eumhun:"뉘우칠 참",words:["참(懺)","뉘우침(참)"],busu:"확인중",similar:[]},
   {id:"h3436",level:1,char:"讒",eumhun:"참소할 참",words:["참(讒)","헐뜯음(참)"],busu:"확인중",similar:[]},
   {id:"h3437",level:1,char:"讖",eumhun:"예언 참",words:["참(讖)","예언(참)"],busu:"확인중",similar:[]},

@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v4.4';
+const APP_VERSION = 'v4.5';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -41,8 +41,6 @@ const App = (() => {
     const smState = SM2.loadState();
     const due = SM2.getDueCards(HANJA_DATA).length;
     const newAvail = SM2.getNewCards(HANJA_DATA).length;
-    const weakCards = SM2.getWeakCards(HANJA_DATA);
-    const weakCount = Math.min(weakCards.length, 20);
     const streak = SM2.getStreak();
     const bestStreak = SM2.getBestStreak();
     const isNewRecord = streak > 0 && streak === bestStreak;
@@ -124,9 +122,6 @@ const App = (() => {
       <button class="btn-primary" id="btn-start-all" ${sessionSize === 0 ? 'disabled' : ''}>
         ${sessionSize === 0 ? '오늘의 학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}
       </button>
-      ${weakCount > 0 ? `
-      <button class="btn-weak" id="btn-start-weak">🔄 취약 한자 집중 (${weakCount}장)</button>
-      ` : ''}
 
       <div class="home-footer">
         <span class="version-badge clickable" id="btn-version" title="강제 업데이트">${APP_VERSION} (force update)</span>
@@ -324,7 +319,6 @@ const App = (() => {
   function bindEvents() {
     if (state.screen === 'home') {
       el('btn-start-all').addEventListener('click', () => startSession());
-      if (el('btn-start-weak')) el('btn-start-weak').addEventListener('click', () => startSession('weak'));
 
       el('btn-guide').addEventListener('click', () => { el('guide-overlay').classList.remove('hidden'); });
       el('btn-close-guide').addEventListener('click', () => { el('guide-overlay').classList.add('hidden'); });
