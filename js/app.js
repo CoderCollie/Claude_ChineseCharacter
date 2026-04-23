@@ -528,7 +528,7 @@ const App = (() => {
         SM2.recordStreak();
       }
       render();
-    }, correct ? 600 : 1000);
+    }, correct ? 300 : 600);
   }
 
   function retryWrong() {
