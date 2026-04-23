@@ -1,4 +1,7 @@
-# 프로젝트 규칙
+# Claude 작업 규칙
+
+> **프로젝트 전체 명세는 `PROJECT.md`를 참조하세요.**  
+> 작업 시작 전 반드시 PROJECT.md를 읽어 현재 버전과 상태를 확인하세요.
 
 ## 작업 기록 (필수)
 
@@ -8,11 +11,12 @@
 - 내용: 무엇을 왜 했는지, 어떻게 고쳤는지, 핵심 개념 설명 포함
 - 작성 후 git commit & push까지 완료
 
-## 프로젝트 개요
+## 기능 변경 시 필수 업데이트
 
-한국어문회 한자능력검정시험(8급~1급) 대비 PWA 플래시카드 앱.  
-배포 URL: `https://codercollie.github.io/Claude_ChineseCharacter/`  
-레포: `https://github.com/CoderCollie/Claude_ChineseCharacter`
+1. `PROJECT.md` 해당 섹션 업데이트 (버전, 스키마, 로직, UX 결정사항 등)
+2. `js/app.js`의 `APP_VERSION` 상수 업
+3. `sw.js`의 `CACHE` 버전 업
+4. `history/session-NNN.md` 작성
 
 ## 배포 환경 주의사항
 
