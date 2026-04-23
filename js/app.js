@@ -1,17 +1,18 @@
 'use strict';
 
-const APP_VERSION = 'v4.2';
+const APP_VERSION = 'v4.3';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
-  const DUE_PER_SESSION = 10; // 복습 카드도 세션당 10개로 제한
+  const DUE_PER_SESSION = 10;
   const LEVELS = [8, 7, 6, 5, 4, 3, 2, 1];
 
   let state = {
     screen: 'home',
     queue: [],
     queueIndex: 0,
-    flipped: false,
+    choices: null,   // 4지선다 보기 배열 (card 객체)
+    answered: null,  // 선택한 card.id, null이면 미답
     sessionCorrect: 0,
     sessionTotal: 0,
     sessionWrong: [],
@@ -21,14 +22,13 @@ const App = (() => {
   };
 
   function el(id) { return document.getElementById(id); }
-  function qs(sel) { return document.querySelector(sel); }
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
   function render() {
     const app = el('app');
     document.body.classList.toggle('dark-theme', state.isDarkMode);
-    
+
     if (state.screen === 'home') app.innerHTML = renderHome();
     else if (state.screen === 'study') app.innerHTML = renderStudy();
     else if (state.screen === 'history') app.innerHTML = renderHistory();
@@ -174,8 +174,8 @@ const App = (() => {
             <h3>기본 사용법</h3>
             <ol>
               <li><strong>학습 시작</strong>을 누르면 쉬운 급수(8급)부터 순서대로 학습이 진행돼요</li>
-              <li>한자 카드를 탭해서 음훈 확인</li>
-              <li>스스로 알았으면 <strong style="color:#22c55e">알았다</strong>, 몰랐으면 <strong style="color:#ef4444">몰랐다</strong></li>
+              <li>한자 카드가 나오면 4개의 보기 중 맞는 음훈을 선택하세요</li>
+              <li>정답이면 초록색, 오답이면 빨간색으로 피드백이 표시돼요</li>
             </ol>
           </section>
           <section class="guide-section">
@@ -185,16 +185,16 @@ const App = (() => {
           <section class="guide-section">
             <h3>복습 간격 스케줄</h3>
             <table class="guide-table">
-              <thead><tr><th>회차</th><th>버튼</th><th>다음 복습</th></tr></thead>
+              <thead><tr><th>회차</th><th>결과</th><th>다음 복습</th></tr></thead>
               <tbody>
-                <tr><td>1회</td><td class="right">알았다</td><td>1일 후</td></tr>
-                <tr><td>2회</td><td class="right">알았다</td><td>6일 후</td></tr>
-                <tr><td>3회</td><td class="right">알았다</td><td>~15일 후</td></tr>
-                <tr><td>4회</td><td class="right">알았다</td><td>~38일 후</td></tr>
-                <tr><td>언제든</td><td class="wrong">몰랐다</td><td>내일 (초기화)</td></tr>
+                <tr><td>1회</td><td class="right">정답</td><td>1일 후</td></tr>
+                <tr><td>2회</td><td class="right">정답</td><td>6일 후</td></tr>
+                <tr><td>3회</td><td class="right">정답</td><td>~15일 후</td></tr>
+                <tr><td>4회</td><td class="right">정답</td><td>~38일 후</td></tr>
+                <tr><td>언제든</td><td class="wrong">오답</td><td>내일 (초기화)</td></tr>
               </tbody>
             </table>
-            <p class="guide-note">알았다를 누를수록 간격이 점점 길어져요. 모르면 다시 1일부터 시작해요.</p>
+            <p class="guide-note">정답을 맞출수록 간격이 점점 길어져요. 틀리면 다시 1일부터 시작해요.</p>
           </section>
           <section class="guide-section">
             <h3>매일 학습 루틴</h3>
@@ -214,8 +214,22 @@ const App = (() => {
     const total = state.queue.length;
     const current = state.queueIndex + 1;
     const pct = Math.round((state.queueIndex / total) * 100);
-    const cardState = SM2.loadState()[card.id];
-    const isNew = !cardState;
+    const isNew = !SM2.loadState()[card.id];
+
+    // 보기가 없으면 생성
+    if (!state.choices) state.choices = generateChoices(card);
+    const choices = state.choices;
+    const answered = state.answered;
+
+    const choiceBtns = choices.map((c, i) => {
+      let cls = 'choice-btn';
+      if (answered) {
+        if (c.id === card.id) cls += ' choice-correct';
+        else if (c.id === answered) cls += ' choice-wrong';
+        else cls += ' choice-disabled';
+      }
+      return `<button class="${cls}" data-idx="${i}">${c.eumhun}</button>`;
+    }).join('');
 
     return `
     <div class="screen study-screen">
@@ -227,25 +241,14 @@ const App = (() => {
         <span class="progress-text">${current}/${total}</span>
       </div>
       <div class="card-area">
-        <div class="card${state.flipped ? ' flipped' : ''}" id="card">
-          <div class="card-front">
-            ${isNew ? '<span class="badge-new">NEW</span>' : ''}
-            <div class="hanja-char">${card.char}</div>
-            <p class="card-hint">탭하여 확인</p>
-          </div>
-          <div class="card-back">
-            <div class="hanja-char">${card.char}</div>
-            <div class="eumhun">${card.eumhun}</div>
-            ${card.busu && card.busu !== '확인중' ? `<div class="card-busu">부수: ${card.busu}</div>` : ''}
-            ${card.words && card.words.length > 0 ? `<div class="card-words">${card.words.join(', ')}</div>` : ''}
-            ${card.similar && card.similar.length > 0 ? `<div class="card-similar">비슷한 한자: ${card.similar.join(', ')}</div>` : ''}
-            <div class="card-level">${LEVEL_LABELS[card.level]}</div>
-          </div>
+        <div class="card-simple">
+          ${isNew ? '<span class="badge-new">NEW</span>' : ''}
+          <div class="hanja-char">${card.char}</div>
+          <div class="card-level">${LEVEL_LABELS[card.level]}</div>
         </div>
       </div>
-      <div class="action-row${state.flipped ? ' visible' : ''}">
-        <button class="btn-wrong" id="btn-wrong">몰랐다 ✗</button>
-        <button class="btn-right" id="btn-right">알았다 ✓</button>
+      <div class="choice-grid">
+        ${choiceBtns}
       </div>
     </div>`;
   }
@@ -263,8 +266,7 @@ const App = (() => {
 
     function cardChip(h, type) {
       const s = smState[h.id];
-      const nextDue = s.dueDate;
-      return `<div class="hist-chip hist-${type}" title="${h.eumhun} | 다음복습: ${nextDue}">
+      return `<div class="hist-chip hist-${type}" title="${h.eumhun} | 다음복습: ${s.dueDate}">
         <span class="hist-char">${h.char}</span>
         <span class="hist-eumhun">${h.eumhun}</span>
       </div>`;
@@ -288,7 +290,7 @@ const App = (() => {
         <span class="progress-text">${studied.length}장</span>
       </div>
       <div class="hist-body">
-        ${section('잘 아는 한자', '💪', strong, 'strong', '아직 없어요. 알았다를 꾸준히 눌러보세요!')}
+        ${section('잘 아는 한자', '💪', strong, 'strong', '아직 없어요. 정답을 꾸준히 맞춰보세요!')}
         ${section('학습 중', '📖', learning, 'learning', '없어요.')}
         ${section('헷갈리는 한자', '🔄', weak, 'weak', '없어요. 모두 잘 외우고 있어요!')}
       </div>
@@ -325,12 +327,12 @@ const App = (() => {
 
       el('btn-guide').addEventListener('click', () => { el('guide-overlay').classList.remove('hidden'); });
       el('btn-close-guide').addEventListener('click', () => { el('guide-overlay').classList.add('hidden'); });
-      
+
       el('btn-settings').addEventListener('click', () => { el('settings-overlay').classList.remove('hidden'); });
       el('btn-close-settings').addEventListener('click', () => { el('settings-overlay').classList.add('hidden'); });
 
       el('btn-history').addEventListener('click', () => { state.screen = 'history'; render(); });
-      
+
       el('btn-toggle-dark').addEventListener('click', () => {
         state.isDarkMode = !state.isDarkMode;
         localStorage.setItem('hanja_dark_mode', state.isDarkMode);
@@ -367,18 +369,17 @@ const App = (() => {
     }
 
     if (state.screen === 'study') {
-      const card = el('card');
-      let touchStartX = 0;
-      card.addEventListener('click', () => { if (!state.flipped) { state.flipped = true; render(); } });
-      card.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
-      card.addEventListener('touchend', e => {
-        if (!state.flipped) return;
-        const dx = e.changedTouches[0].clientX - touchStartX;
-        if (Math.abs(dx) > 60) answer(dx > 0);
-      });
       el('btn-home').addEventListener('click', () => { state.screen = 'home'; render(); });
-      if (el('btn-right')) el('btn-right').addEventListener('click', () => answer(true));
-      if (el('btn-wrong')) el('btn-wrong').addEventListener('click', () => answer(false));
+
+      // 미답 상태일 때만 보기 클릭 허용
+      if (!state.answered) {
+        document.querySelectorAll('.choice-btn').forEach((btn, i) => {
+          btn.addEventListener('click', () => {
+            const selected = state.choices[i];
+            answer(selected);
+          });
+        });
+      }
     }
 
     if (state.screen === 'done') {
@@ -390,17 +391,19 @@ const App = (() => {
 
   // ── Logic ──────────────────────────────────────────────────────────────────
 
+  function generateChoices(currentCard) {
+    const pool = HANJA_DATA.filter(h => h.id !== currentCard.id);
+    const distractors = shuffle([...pool]).slice(0, 3);
+    return shuffle([currentCard, ...distractors]);
+  }
+
   async function forceUpdate() {
     if ('serviceWorker' in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
-      for (let registration of registrations) {
-        await registration.unregister();
-      }
+      for (let r of registrations) await r.unregister();
     }
     const cacheNames = await caches.keys();
-    for (let cacheName of cacheNames) {
-      await caches.delete(cacheName);
-    }
+    for (let c of cacheNames) await caches.delete(c);
     window.location.reload();
   }
 
@@ -428,7 +431,7 @@ const App = (() => {
         if (data.streak) localStorage.setItem('hanja_streak', data.streak);
         alert('데이터 복원이 완료되었습니다!');
         location.reload();
-      } catch (err) {
+      } catch {
         alert('잘못된 파일 형식입니다.');
       }
     };
@@ -436,56 +439,53 @@ const App = (() => {
   }
 
   function startSession(mode = 'all') {
-    let due = [];
-    let newCards = [];
+    let queue = [];
 
     if (mode === 'weak') {
-      const queue = shuffle(SM2.getWeakCards(HANJA_DATA).slice(0, 20));
-      if (queue.length === 0) { render(); return; }
-      state.screen = 'study';
-      state.queue = queue;
-      state.queueIndex = 0;
-      state.flipped = false;
-      state.sessionCorrect = 0;
-      state.sessionTotal = 0;
-      state.sessionWrong = [];
-      render();
-      return;
+      queue = shuffle(SM2.getWeakCards(HANJA_DATA).slice(0, 20));
+    } else {
+      let due = [], newCards = [];
+      if (mode === 'all' || mode === 'review') due = SM2.getDueCards(HANJA_DATA).slice(0, DUE_PER_SESSION);
+      if (mode === 'all' || mode === 'new') newCards = SM2.getNewCards(HANJA_DATA).slice(0, NEW_PER_SESSION);
+      queue = shuffle([...due, ...newCards]);
     }
 
-    if (mode === 'all' || mode === 'review') {
-      due = SM2.getDueCards(HANJA_DATA).slice(0, DUE_PER_SESSION);
-    }
-    if (mode === 'all' || mode === 'new') {
-      newCards = SM2.getNewCards(HANJA_DATA).slice(0, NEW_PER_SESSION);
-    }
-
-    const queue = shuffle([...due, ...newCards]);
     if (queue.length === 0) { render(); return; }
 
     state.screen = 'study';
     state.queue = queue;
     state.queueIndex = 0;
-    state.flipped = false;
+    state.choices = null;
+    state.answered = null;
     state.sessionCorrect = 0;
     state.sessionTotal = 0;
     state.sessionWrong = [];
     render();
   }
 
-  function answer(correct) {
+  function answer(selectedCard) {
     const card = state.queue[state.queueIndex];
-    SM2.review(card.id, correct ? 4 : 1);
-    state.sessionTotal++;
-    if (correct) state.sessionCorrect++;
-    else state.sessionWrong.push(card);
-    state.queueIndex++;
-    state.flipped = false;
-    if (state.queueIndex >= state.queue.length) {
-      state.screen = 'done';
-      SM2.recordStreak();
-    }
-    render();
+    const correct = selectedCard.id === card.id;
+
+    state.answered = selectedCard.id;
+    render(); // 피드백 표시
+
+    setTimeout(() => {
+      SM2.review(card.id, correct ? 4 : 1);
+      state.sessionTotal++;
+      if (correct) state.sessionCorrect++;
+      else state.sessionWrong.push(card);
+
+      state.queueIndex++;
+      state.choices = null;
+      state.answered = null;
+
+      if (state.queueIndex >= state.queue.length) {
+        state.screen = 'done';
+        SM2.recordStreak();
+      }
+      render();
+    }, correct ? 600 : 1000);
   }
 
   function retryWrong() {
@@ -493,7 +493,8 @@ const App = (() => {
     state.screen = 'study';
     state.queue = shuffle([...wrong]);
     state.queueIndex = 0;
-    state.flipped = false;
+    state.choices = null;
+    state.answered = null;
     state.sessionCorrect = 0;
     state.sessionTotal = 0;
     state.sessionWrong = [];
@@ -526,10 +527,7 @@ const App = (() => {
 
       let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!refreshing) {
-          window.location.reload();
-          refreshing = true;
-        }
+        if (!refreshing) { window.location.reload(); refreshing = true; }
       });
     }
   }
