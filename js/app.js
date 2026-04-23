@@ -1,11 +1,17 @@
 'use strict';
 
-const APP_VERSION = 'v4.6';
+const APP_VERSION = 'v4.7';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
   const DUE_PER_SESSION = 10;
   const LEVELS = [8, 7, 6, 5, 4, 3, 2, 1];
+
+  // 레벨별 인덱스 — 앱 로드 시 1회만 생성
+  const HANJA_BY_LEVEL = {};
+  for (const h of HANJA_DATA) {
+    (HANJA_BY_LEVEL[h.level] = HANJA_BY_LEVEL[h.level] || []).push(h);
+  }
 
   let state = {
     screen: 'home',
@@ -38,17 +44,23 @@ const App = (() => {
   }
 
   function renderHome() {
-    const stats = SM2.getStats();
     const smState = SM2.loadState();
-    const due = SM2.getDueCards(HANJA_DATA).length;
-    const newAvail = SM2.getNewCards(HANJA_DATA).length;
+    const t = new Date().toISOString().split('T')[0];
+    let statsTotal = 0, statsDue = 0;
+    for (const id in smState) {
+      statsTotal++;
+      if (smState[id].dueDate <= t) statsDue++;
+    }
+    const due = statsDue;
+    const newAvail = HANJA_DATA.filter(h => !smState[h.id]).length;
     const streak = SM2.getStreak();
     const bestStreak = SM2.getBestStreak();
     const isNewRecord = streak > 0 && streak === bestStreak;
 
     const progressRows = LEVELS.map(lv => {
-      const total = HANJA_DATA.filter(h => h.level === lv).length;
-      const learned = HANJA_DATA.filter(h => h.level === lv && smState[h.id]).length;
+      const cards = HANJA_BY_LEVEL[lv] || [];
+      const total = cards.length;
+      const learned = cards.filter(h => smState[h.id]).length;
       const pct = total > 0 ? Math.round(learned / total * 100) : 0;
       return `<div class="lv-prog-row">
         <span class="lv-prog-label">${LEVEL_LABELS[lv]}</span>
@@ -114,7 +126,7 @@ const App = (() => {
           <span class="stat-desc">이번 세션</span>
         </div>
         <div class="stat-box clickable" id="btn-history">
-          <span class="stat-num">${stats.total}</span>
+          <span class="stat-num">${statsTotal}</span>
           <span class="stat-label">누적</span>
           <span class="stat-desc">공부한 한자 →</span>
         </div>
@@ -410,9 +422,19 @@ const App = (() => {
   // ── Logic ──────────────────────────────────────────────────────────────────
 
   function generateChoices(currentCard) {
-    const pool = HANJA_DATA.filter(h => h.id !== currentCard.id);
-    const distractors = shuffle([...pool]).slice(0, 3);
-    return shuffle([currentCard, ...distractors]);
+    const chosen = [];
+    let count = 0;
+    for (let i = 0; i < HANJA_DATA.length; i++) {
+      if (HANJA_DATA[i].id === currentCard.id) continue;
+      count++;
+      if (chosen.length < 3) {
+        chosen.push(HANJA_DATA[i]);
+      } else {
+        const j = Math.floor(Math.random() * count);
+        if (j < 3) chosen[j] = HANJA_DATA[i];
+      }
+    }
+    return shuffle([currentCard, ...chosen]);
   }
 
   async function forceUpdate() {

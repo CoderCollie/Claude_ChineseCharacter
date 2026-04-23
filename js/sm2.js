@@ -76,11 +76,14 @@ const SM2 = (() => {
   }
 
   function getDueCards(hanjaList) {
-    return hanjaList.filter(h => isDue(h.id));
+    const state = loadState();
+    const t = today();
+    return hanjaList.filter(h => { const c = state[h.id]; return c && c.dueDate <= t; });
   }
 
   function getNewCards(hanjaList) {
-    return hanjaList.filter(h => isNew(h.id));
+    const state = loadState();
+    return hanjaList.filter(h => !state[h.id]);
   }
 
   function resetAll() {
