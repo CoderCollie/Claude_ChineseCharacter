@@ -377,6 +377,7 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
   word-break: keep-all;
 }
 .choice-btn:active { transform: scale(0.97); }
+.choice-char { font-size: 2rem; line-height: 1.2; display: block; }
 .choice-correct { background: #f0fdf4; border-color: var(--right); color: var(--right); }
 .choice-wrong   { background: #fef2f2; border-color: var(--wrong); color: var(--wrong); }
 .choice-disabled { opacity: 0.45; cursor: default; pointer-events: none; }

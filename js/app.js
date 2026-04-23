@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v4.5';
+const APP_VERSION = 'v4.6';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -13,6 +13,7 @@ const App = (() => {
     queueIndex: 0,
     choices: null,   // 4지선다 보기 배열 (card 객체)
     answered: null,  // 선택한 card.id, null이면 미답
+    quizDir: null,   // 'char2eumhun' | 'eumhun2char'
     sessionCorrect: 0,
     sessionTotal: 0,
     sessionWrong: [],
@@ -214,10 +215,12 @@ const App = (() => {
     const pct = Math.round((state.queueIndex / total) * 100);
     const isNew = !SM2.loadState()[card.id];
 
-    // 보기가 없으면 생성
+    // 보기와 방향이 없으면 생성
     if (!state.choices) state.choices = generateChoices(card);
+    if (!state.quizDir) state.quizDir = Math.random() < 0.5 ? 'char2eumhun' : 'eumhun2char';
     const choices = state.choices;
     const answered = state.answered;
+    const dir = state.quizDir;
 
     const choiceBtns = choices.map((c, i) => {
       let cls = 'choice-btn';
@@ -226,8 +229,18 @@ const App = (() => {
         else if (c.id === answered) cls += ' choice-wrong';
         else cls += ' choice-disabled';
       }
-      return `<button class="${cls}" data-idx="${i}">${c.eumhun}</button>`;
+      const label = dir === 'char2eumhun' ? c.eumhun : `<span class="choice-char">${c.char}</span>`;
+      return `<button class="${cls}" data-idx="${i}">${label}</button>`;
     }).join('');
+
+    const cardBody = dir === 'char2eumhun'
+      ? `${isNew ? '<span class="badge-new">NEW</span>' : ''}
+         <div class="hanja-char">${card.char}</div>
+         <div class="card-level">${LEVEL_LABELS[card.level]}</div>`
+      : `${isNew ? '<span class="badge-new">NEW</span>' : ''}
+         <div class="card-hint" style="font-size:.8rem;margin-bottom:8px">${LEVEL_LABELS[card.level]}</div>
+         <div class="eumhun" style="font-size:1.8rem;font-weight:800">${card.eumhun}</div>
+         <div class="card-hint" style="margin-top:12px">한자를 고르세요</div>`;
 
     return `
     <div class="screen study-screen">
@@ -240,9 +253,7 @@ const App = (() => {
       </div>
       <div class="card-area">
         <div class="card-simple">
-          ${isNew ? '<span class="badge-new">NEW</span>' : ''}
-          <div class="hanja-char">${card.char}</div>
-          <div class="card-level">${LEVEL_LABELS[card.level]}</div>
+          ${cardBody}
         </div>
       </div>
       <div class="choice-grid">
@@ -465,6 +476,7 @@ const App = (() => {
     state.queueIndex = 0;
     state.choices = null;
     state.answered = null;
+    state.quizDir = null;
     state.sessionCorrect = 0;
     state.sessionTotal = 0;
     state.sessionWrong = [];
@@ -487,6 +499,7 @@ const App = (() => {
       state.queueIndex++;
       state.choices = null;
       state.answered = null;
+      state.quizDir = null;
 
       if (state.queueIndex >= state.queue.length) {
         state.screen = 'done';
@@ -503,6 +516,7 @@ const App = (() => {
     state.queueIndex = 0;
     state.choices = null;
     state.answered = null;
+    state.quizDir = null;
     state.sessionCorrect = 0;
     state.sessionTotal = 0;
     state.sessionWrong = [];
