@@ -345,6 +345,7 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
 .done-screen h2 { font-size: 1.8rem; margin-bottom: 32px; }
 .done-stats { display: flex; gap: 12px; width: 100%; margin-bottom: 32px; }
 .btn-retry { background: #fffbeb; color: #d97706; width: 100%; margin-bottom: 16px; }
+.btn-weak { background: #fdf4ff; color: #9333ea; width: 100%; margin-top: 12px; border: 1.5px solid #e9d5ff; }
 .btn-again { margin-bottom: 12px; }
 .btn-home-done { width: 100%; background: var(--surface); color: var(--text); border: 1.5px solid var(--border); margin-top: 12px; }
 .btn-home-done:active { background: var(--bg); }

@@ -91,12 +91,13 @@ const SM2 = (() => {
     const t = today();
     let s;
     try { s = JSON.parse(localStorage.getItem('hanja_streak') || 'null'); } catch { s = null; }
-    if (!s) s = { lastDate: null, count: 0 };
+    if (!s) s = { lastDate: null, count: 0, best: 0 };
     if (s.lastDate === t) return;
     const prev = new Date(); prev.setDate(prev.getDate() - 1);
     const yStr = prev.toISOString().split('T')[0];
     s.count = s.lastDate === yStr ? s.count + 1 : 1;
     s.lastDate = t;
+    s.best = Math.max(s.best || 0, s.count);
     localStorage.setItem('hanja_streak', JSON.stringify(s));
   }
 
@@ -109,5 +110,20 @@ const SM2 = (() => {
     return (s.lastDate === today() || s.lastDate === yStr) ? s.count : 0;
   }
 
-  return { review, isDue, isNew, getDueCards, getNewCards, getStats, resetAll, loadState, recordStreak, getStreak };
+  function getBestStreak() {
+    let s;
+    try { s = JSON.parse(localStorage.getItem('hanja_streak') || 'null'); } catch { s = null; }
+    if (!s) return 0;
+    return s.best || s.count || 0;
+  }
+
+  function getWeakCards(hanjaList) {
+    const state = loadState();
+    return hanjaList.filter(h => {
+      const card = state[h.id];
+      return card && (card.repetition === 0 || card.efactor < 2.0);
+    });
+  }
+
+  return { review, isDue, isNew, getDueCards, getNewCards, getWeakCards, getStats, resetAll, loadState, recordStreak, getStreak, getBestStreak };
 })();

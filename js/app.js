@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v4.1';
+const APP_VERSION = 'v4.2';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -41,7 +41,11 @@ const App = (() => {
     const smState = SM2.loadState();
     const due = SM2.getDueCards(HANJA_DATA).length;
     const newAvail = SM2.getNewCards(HANJA_DATA).length;
+    const weakCards = SM2.getWeakCards(HANJA_DATA);
+    const weakCount = Math.min(weakCards.length, 20);
     const streak = SM2.getStreak();
+    const bestStreak = SM2.getBestStreak();
+    const isNewRecord = streak > 0 && streak === bestStreak;
 
     const progressRows = LEVELS.map(lv => {
       const total = HANJA_DATA.filter(h => h.level === lv).length;
@@ -56,6 +60,21 @@ const App = (() => {
 
     const sessionSize = Math.min(due, DUE_PER_SESSION) + Math.min(newAvail, NEW_PER_SESSION);
 
+    let greetingText, subGreetingText;
+    if (streak >= 3) {
+      greetingText = `🔥 ${streak}일 연속 학습 중!`;
+      subGreetingText = isNewRecord ? '새 최고 기록이에요! 계속 달려요 🏆' : `최고 기록까지 ${bestStreak - streak}일 남았어요!`;
+    } else if (streak === 2) {
+      greetingText = '이틀 연속이에요! 💪';
+      subGreetingText = '내일도 하면 🔥 스트릭 시작!';
+    } else if (streak === 1) {
+      greetingText = '오늘 학습 완료! 😊';
+      subGreetingText = '내일도 이어가면 연속 학습 스트릭이 시작돼요!';
+    } else {
+      greetingText = '안녕하세요! 😊';
+      subGreetingText = bestStreak > 0 ? `이전 최고 기록: ${bestStreak}일 연속 — 다시 도전해봐요!` : '오늘도 한자 공부를 시작해볼까요?';
+    }
+
     return `
     <div class="screen home-screen">
       <div class="title-row">
@@ -64,7 +83,7 @@ const App = (() => {
           <h1 class="app-title">漢字 카드</h1>
         </div>
         <div class="title-actions">
-          ${streak > 0 ? `<span class="streak-badge">🔥 ${streak}일째</span>` : ''}
+          ${streak > 0 ? `<span class="streak-badge">🔥 ${streak}일 연속${isNewRecord ? ' 🏆' : ''}</span>` : ''}
           <button class="btn-icon-small" id="btn-toggle-dark" title="다크모드">${state.isDarkMode ? '☀️' : '🌙'}</button>
           <button class="btn-icon-small" id="btn-settings" title="설정">⚙️</button>
           <button class="btn-guide" id="btn-guide">?</button>
@@ -72,8 +91,8 @@ const App = (() => {
       </div>
 
       <section class="welcome-section">
-        <p class="greeting">안녕하세요! 😊</p>
-        <p class="sub-greeting">오늘도 한자 공부를 시작해볼까요?</p>
+        <p class="greeting">${greetingText}</p>
+        <p class="sub-greeting">${subGreetingText}</p>
       </section>
 
       <section class="level-section">
@@ -102,6 +121,9 @@ const App = (() => {
       <button class="btn-primary" id="btn-start-all" ${sessionSize === 0 ? 'disabled' : ''}>
         ${sessionSize === 0 ? '오늘의 학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}
       </button>
+      ${weakCount > 0 ? `
+      <button class="btn-weak" id="btn-start-weak">🔄 취약 한자 집중 (${weakCount}장)</button>
+      ` : ''}
 
       <div class="home-footer">
         <span class="version-badge clickable" id="btn-version" title="강제 업데이트">${APP_VERSION} (force update)</span>
@@ -299,6 +321,7 @@ const App = (() => {
       el('btn-start-all').addEventListener('click', () => startSession('all'));
       el('btn-start-review').addEventListener('click', () => startSession('review'));
       el('btn-start-new').addEventListener('click', () => startSession('new'));
+      if (el('btn-start-weak')) el('btn-start-weak').addEventListener('click', () => startSession('weak'));
 
       el('btn-guide').addEventListener('click', () => { el('guide-overlay').classList.remove('hidden'); });
       el('btn-close-guide').addEventListener('click', () => { el('guide-overlay').classList.add('hidden'); });
@@ -384,7 +407,7 @@ const App = (() => {
   function exportData() {
     const data = {
       sm2: localStorage.getItem('hanja_sm2_state'),
-      streak: localStorage.getItem('hanja_sm2_streak')
+      streak: localStorage.getItem('hanja_streak')
     };
     const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -402,7 +425,7 @@ const App = (() => {
       try {
         const data = JSON.parse(evt.target.result);
         if (data.sm2) localStorage.setItem('hanja_sm2_state', data.sm2);
-        if (data.streak) localStorage.setItem('hanja_sm2_streak', data.streak);
+        if (data.streak) localStorage.setItem('hanja_streak', data.streak);
         alert('데이터 복원이 완료되었습니다!');
         location.reload();
       } catch (err) {
@@ -415,6 +438,20 @@ const App = (() => {
   function startSession(mode = 'all') {
     let due = [];
     let newCards = [];
+
+    if (mode === 'weak') {
+      const queue = shuffle(SM2.getWeakCards(HANJA_DATA).slice(0, 20));
+      if (queue.length === 0) { render(); return; }
+      state.screen = 'study';
+      state.queue = queue;
+      state.queueIndex = 0;
+      state.flipped = false;
+      state.sessionCorrect = 0;
+      state.sessionTotal = 0;
+      state.sessionWrong = [];
+      render();
+      return;
+    }
 
     if (mode === 'all' || mode === 'review') {
       due = SM2.getDueCards(HANJA_DATA).slice(0, DUE_PER_SESSION);
