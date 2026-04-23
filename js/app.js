@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v4.7';
+const APP_VERSION = 'v4.8';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -458,7 +458,8 @@ const App = (() => {
     }
     const cacheNames = await caches.keys();
     for (let c of cacheNames) await caches.delete(c);
-    window.location.reload();
+    // 쿼리스트링으로 브라우저 캐시도 우회
+    window.location.href = window.location.pathname + '?v=' + Date.now();
   }
 
   function exportData() {
