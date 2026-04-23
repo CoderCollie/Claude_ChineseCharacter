@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v4.3';
+const APP_VERSION = 'v4.4';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -58,7 +58,10 @@ const App = (() => {
       </div>`;
     }).join('');
 
-    const sessionSize = Math.min(due, DUE_PER_SESSION) + Math.min(newAvail, NEW_PER_SESSION);
+    const SESSION_SIZE = 10;
+    const dueCount = Math.min(due, SESSION_SIZE);
+    const newCount = Math.min(newAvail, SESSION_SIZE - dueCount);
+    const sessionSize = dueCount + newCount;
 
     let greetingText, subGreetingText;
     if (streak >= 3) {
@@ -101,15 +104,15 @@ const App = (() => {
       </section>
 
       <section class="stats-section">
-        <div class="stat-box clickable" id="btn-start-review">
+        <div class="stat-box">
           <span class="stat-num">${due}</span>
           <span class="stat-label">복습</span>
-          <span class="stat-desc">다시 볼 한자</span>
+          <span class="stat-desc">오늘 복습 대상</span>
         </div>
-        <div class="stat-box clickable" id="btn-start-new">
-          <span class="stat-num">${Math.min(newAvail, NEW_PER_SESSION)}</span>
+        <div class="stat-box">
+          <span class="stat-num">${newCount}</span>
           <span class="stat-label">신규</span>
-          <span class="stat-desc">오늘의 목표</span>
+          <span class="stat-desc">이번 세션</span>
         </div>
         <div class="stat-box clickable" id="btn-history">
           <span class="stat-num">${stats.total}</span>
@@ -199,7 +202,7 @@ const App = (() => {
           <section class="guide-section">
             <h3>매일 학습 루틴</h3>
             <ul>
-              <li>앱을 열면 <strong>복습</strong> 카드(최대 10장) + <strong>신규</strong> 카드(최대 10장)가 자동으로 준비돼요</li>
+              <li>앱을 열면 <strong>복습</strong> 대상이 먼저 나오고, 부족하면 <strong>신규</strong> 한자로 채워져 항상 10장이 준비돼요</li>
               <li>매일 꾸준히 하면 기억에 오래 남아요</li>
               <li>쉬운 한자부터 마스터하면 다음 급수 한자가 자동으로 등장해요</li>
             </ul>
@@ -320,9 +323,7 @@ const App = (() => {
 
   function bindEvents() {
     if (state.screen === 'home') {
-      el('btn-start-all').addEventListener('click', () => startSession('all'));
-      el('btn-start-review').addEventListener('click', () => startSession('review'));
-      el('btn-start-new').addEventListener('click', () => startSession('new'));
+      el('btn-start-all').addEventListener('click', () => startSession());
       if (el('btn-start-weak')) el('btn-start-weak').addEventListener('click', () => startSession('weak'));
 
       el('btn-guide').addEventListener('click', () => { el('guide-overlay').classList.remove('hidden'); });
@@ -384,7 +385,7 @@ const App = (() => {
 
     if (state.screen === 'done') {
       if (el('btn-retry')) el('btn-retry').addEventListener('click', retryWrong);
-      el('btn-again').addEventListener('click', () => startSession('all'));
+      el('btn-again').addEventListener('click', () => startSession());
       el('btn-home-done').addEventListener('click', () => { state.screen = 'home'; render(); });
     }
   }
@@ -444,10 +445,11 @@ const App = (() => {
     if (mode === 'weak') {
       queue = shuffle(SM2.getWeakCards(HANJA_DATA).slice(0, 20));
     } else {
-      let due = [], newCards = [];
-      if (mode === 'all' || mode === 'review') due = SM2.getDueCards(HANJA_DATA).slice(0, DUE_PER_SESSION);
-      if (mode === 'all' || mode === 'new') newCards = SM2.getNewCards(HANJA_DATA).slice(0, NEW_PER_SESSION);
-      queue = shuffle([...due, ...newCards]);
+      const SESSION_SIZE = 10;
+      const due = SM2.getDueCards(HANJA_DATA).slice(0, SESSION_SIZE);
+      const remaining = SESSION_SIZE - due.length;
+      const newCards = remaining > 0 ? SM2.getNewCards(HANJA_DATA).slice(0, remaining) : [];
+      queue = [...due, ...newCards]; // 복습 먼저, 그 다음 신규
     }
 
     if (queue.length === 0) { render(); return; }
