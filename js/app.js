@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v4.8.2';
+const APP_VERSION = 'v4.9';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -239,6 +239,12 @@ const App = (() => {
 
     // 신규 카드 + 아직 소개 안 됨 → 소개 화면
     if (isNew && !state.introduced) {
+      const busuHtml = card.busu && card.busu !== '확인중'
+        ? `<div class="intro-meta-row"><span class="intro-meta-label">부수</span><span>${card.busu}</span></div>` : '';
+      const wordsHtml = card.words && card.words.length
+        ? `<div class="intro-meta-row"><span class="intro-meta-label">단어</span><span>${card.words.join('  ')}</span></div>` : '';
+      const similarHtml = card.similar && card.similar.length
+        ? `<div class="intro-meta-row"><span class="intro-meta-label">유의자</span><span>${card.similar.join('  ')}</span></div>` : '';
       return `
       <div class="screen study-screen">
         ${header}
@@ -247,7 +253,10 @@ const App = (() => {
             <span class="badge-new">NEW</span>
             <div class="hanja-char">${card.char}</div>
             <div class="eumhun" style="margin-top:12px">${card.eumhun}</div>
-            <div class="card-level" style="margin-top:8px">${LEVEL_LABELS[card.level]}</div>
+            <div class="card-level" style="margin-top:6px">${LEVEL_LABELS[card.level]}</div>
+            <div class="intro-meta">
+              ${busuHtml}${wordsHtml}${similarHtml}
+            </div>
           </div>
         </div>
         <div class="study-footer study-footer--intro">

@@ -229,6 +229,9 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
 .study-screen .card-area { padding-bottom: 4px; }
 .btn-intro-next { margin-bottom: 0; }
 .card-intro { gap: 4px; }
+.intro-meta { width: 100%; margin-top: 14px; display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--border); padding-top: 12px; }
+.intro-meta-row { display: flex; gap: 8px; font-size: .85rem; line-height: 1.5; text-align: left; }
+.intro-meta-label { font-size: .72rem; font-weight: 700; color: var(--text-muted); min-width: 36px; padding-top: 2px; }
 .card { width: 100%; max-width: 320px; height: 420px; position: relative; transform-style: preserve-3d; transition: transform .6s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
 .card.flipped { transform: rotateY(180deg); }
 
