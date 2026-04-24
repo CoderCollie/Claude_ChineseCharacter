@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v4.9';
+const APP_VERSION = 'v4.9.1';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -535,7 +535,16 @@ const App = (() => {
       const SESSION_SIZE = 10;
       const due = SM2.getDueCards(HANJA_DATA).slice(0, SESSION_SIZE);
       const remaining = SESSION_SIZE - due.length;
-      const newCards = remaining > 0 ? shuffle(SM2.getNewCards(HANJA_DATA)).slice(0, remaining) : [];
+      // 신규 카드: 8급 → 7급 → ... → 1급 순서로 채움 (해당 급수 소진 후 다음 급수)
+      const newCards = [];
+      if (remaining > 0) {
+        const smState = SM2.loadState();
+        for (const lv of LEVELS) {
+          if (newCards.length >= remaining) break;
+          const pool = (HANJA_BY_LEVEL[lv] || []).filter(h => !smState[h.id]);
+          newCards.push(...shuffle(pool).slice(0, remaining - newCards.length));
+        }
+      }
       queue = [...due, ...newCards]; // 복습 먼저, 그 다음 신규
     }
 
