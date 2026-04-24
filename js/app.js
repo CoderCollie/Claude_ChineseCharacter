@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v4.8.1';
+const APP_VERSION = 'v4.8.2';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -465,19 +465,14 @@ const App = (() => {
   // ── Logic ──────────────────────────────────────────────────────────────────
 
   function generateChoices(currentCard) {
-    const chosen = [];
-    let count = 0;
-    for (let i = 0; i < HANJA_DATA.length; i++) {
-      if (HANJA_DATA[i].id === currentCard.id) continue;
-      count++;
-      if (chosen.length < 3) {
-        chosen.push(HANJA_DATA[i]);
-      } else {
-        const j = Math.floor(Math.random() * count);
-        if (j < 3) chosen[j] = HANJA_DATA[i];
-      }
+    // 같은 급수 우선, 부족하면 다른 급수로 보충
+    const sameLevel = shuffle((HANJA_BY_LEVEL[currentCard.level] || []).filter(h => h.id !== currentCard.id));
+    const distractors = sameLevel.slice(0, 3);
+    if (distractors.length < 3) {
+      const others = shuffle(HANJA_DATA.filter(h => h.id !== currentCard.id && h.level !== currentCard.level));
+      distractors.push(...others.slice(0, 3 - distractors.length));
     }
-    return shuffle([currentCard, ...chosen]);
+    return shuffle([currentCard, ...distractors]);
   }
 
   async function forceUpdate() {
