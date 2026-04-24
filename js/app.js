@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.1';
+const APP_VERSION = 'v5.2';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -647,19 +647,36 @@ const App = (() => {
       queue = shuffle(SM2.getWeakCards(HANJA_DATA).slice(0, 20));
     } else {
       const SESSION_SIZE = 10;
-      const due = SM2.getDueCards(HANJA_DATA).slice(0, SESSION_SIZE);
-      const remaining = SESSION_SIZE - due.length;
-      // 신규 카드: 8급 → 7급 → ... → 1급 순서로 채움 (해당 급수 소진 후 다음 급수)
-      const newCards = [];
-      if (remaining > 0) {
-        const smState = SM2.loadState();
+      const t = new Date().toISOString().split('T')[0];
+      const smState = SM2.loadState();
+      const acc = SM2.loadAccuracy();
+
+      function isWeak(id) {
+        const a = acc[id];
+        return a && a.t > 0 && (a.c / a.t) < 0.5;
+      }
+
+      const introduced = HANJA_DATA.filter(h => smState[h.id]);
+      // ① 복습 대상 중 정답률 50% 미만
+      const dueWeak   = shuffle(introduced.filter(h => smState[h.id].dueDate <= t &&  isWeak(h.id)));
+      // ② 아직 복습일이 안 됐지만 정답률 50% 미만 (앞당겨 출제)
+      const earlyWeak = shuffle(introduced.filter(h => smState[h.id].dueDate >  t &&  isWeak(h.id)));
+      // ③ 복습 대상 중 정답률 50% 이상
+      const dueNormal =         introduced.filter(h => smState[h.id].dueDate <= t && !isWeak(h.id));
+
+      const hasWeak = dueWeak.length + earlyWeak.length > 0;
+
+      // 우선순위: ①→②→③, 약한 카드가 남아있으면 신규 없음
+      queue = [...dueWeak, ...earlyWeak, ...dueNormal].slice(0, SESSION_SIZE);
+
+      if (queue.length < SESSION_SIZE && !hasWeak) {
+        // 약한 카드가 없을 때만 신규 카드 투입 (8급→1급 순서)
         for (const lv of LEVELS) {
-          if (newCards.length >= remaining) break;
+          if (queue.length >= SESSION_SIZE) break;
           const pool = (HANJA_BY_LEVEL[lv] || []).filter(h => !smState[h.id]);
-          newCards.push(...shuffle(pool).slice(0, remaining - newCards.length));
+          queue.push(...shuffle(pool).slice(0, SESSION_SIZE - queue.length));
         }
       }
-      queue = [...due, ...newCards]; // 복습 먼저, 그 다음 신규
     }
 
     if (queue.length === 0) { render(); return; }

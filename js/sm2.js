@@ -17,7 +17,7 @@ const SM2 = (() => {
   }
 
   function getCard(state, id) {
-    return state[id] || { interval: 0, repetition: 0, efactor: DEFAULT_EFACTOR, dueDate: null };
+    return state[id] || { interval: 0, repetition: 0, efactor: DEFAULT_EFACTOR, dueDate: null, lastReviewed: null };
   }
 
   function today() {
@@ -28,25 +28,33 @@ const SM2 = (() => {
   function review(id, quality) {
     const state = loadState();
     let card = getCard(state, id);
-    let { interval, repetition, efactor } = card;
+    let { interval, repetition, efactor, dueDate } = card;
+    const alreadyToday = card.lastReviewed === today();
 
     if (quality >= 3) {
-      if (repetition === 0) interval = 1;
-      else if (repetition === 1) interval = 6;
-      else interval = Math.round(interval * efactor);
-      repetition++;
+      if (!alreadyToday) {
+        // 다른 날 정답: 정상 SM-2 진행
+        if (repetition === 0) interval = 1;
+        else if (repetition === 1) interval = 6;
+        else interval = Math.round(interval * efactor);
+        repetition++;
+        const due = new Date();
+        due.setDate(due.getDate() + interval);
+        dueDate = due.toISOString().split('T')[0];
+      }
+      // 같은 날 재등장 + 정답: interval/repetition/dueDate 그대로 유지
     } else {
+      // 오답: 날짜 무관하게 항상 리셋
       interval = 1;
       repetition = 0;
+      const due = new Date();
+      due.setDate(due.getDate() + 1);
+      dueDate = due.toISOString().split('T')[0];
     }
 
     efactor = Math.max(1.3, efactor + 0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
 
-    const due = new Date();
-    due.setDate(due.getDate() + interval);
-    const dueDate = due.toISOString().split('T')[0];
-
-    state[id] = { interval, repetition, efactor, dueDate };
+    state[id] = { interval, repetition, efactor, dueDate, lastReviewed: today() };
     saveState(state);
     return state[id];
   }
@@ -154,7 +162,7 @@ const SM2 = (() => {
   function introduce(id) {
     const state = loadState();
     if (state[id]) return;
-    state[id] = { interval: 1, repetition: 0, efactor: DEFAULT_EFACTOR, dueDate: today() };
+    state[id] = { interval: 1, repetition: 0, efactor: DEFAULT_EFACTOR, dueDate: today(), lastReviewed: null };
     saveState(state);
   }
 

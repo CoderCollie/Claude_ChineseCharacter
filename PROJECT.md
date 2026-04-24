@@ -9,8 +9,8 @@
 
 | 항목 | 값 |
 |------|-----|
-| `APP_VERSION` (js/app.js) | `v5.1` |
-| SW 캐시 버전 (sw.js) | `hanja-v24` |
+| `APP_VERSION` (js/app.js) | `v5.2` |
+| SW 캐시 버전 (sw.js) | `hanja-v25` |
 | 최종 업데이트 | 2026-04-24 |
 
 ---
@@ -124,16 +124,20 @@ PROJECT.md                   ← 이 파일
 ```javascript
 // hanja_sm2_state[id]
 {
-  interval: 6,        // 다음 복습까지 일수
-  repetition: 1,      // 연속 정답 횟수 (0이면 실패/초기화)
-  efactor: 2.5,       // 난이도 계수 (1.3~2.5+)
-  dueDate: "2026-04-30"  // 다음 복습 날짜 (YYYY-MM-DD)
+  interval: 6,              // 다음 복습까지 일수
+  repetition: 1,            // 연속 정답 횟수 (0이면 실패/초기화)
+  efactor: 2.5,             // 난이도 계수 (1.3~2.5+)
+  dueDate: "2026-04-30",    // 다음 복습 날짜 (YYYY-MM-DD)
+  lastReviewed: "2026-04-24" // 마지막 복습 날짜 (같은 날 중복 진행 방지용)
 }
 ```
 
 **`SM2.review(id, quality)`**: quality=4(정답), quality=1(오답)
+- 정답: `lastReviewed === today`이면 interval/repetition 고정 (같은 날 재등장 시 SM-2 진행 안 함)
+- 오답: 날짜 무관하게 항상 repetition=0, interval=1로 리셋
+- 항상 `lastReviewed = today` 업데이트
 
-**`SM2.introduce(id)`**: 신규 카드 최초 등록. `repetition:0, interval:1, dueDate: 내일`로 초기화. 이미 존재하면 no-op.
+**`SM2.introduce(id)`**: 신규 카드 최초 등록. `repetition:0, interval:1, dueDate:오늘, lastReviewed:null`로 초기화. 이미 존재하면 no-op.
 
 ---
 
@@ -142,9 +146,12 @@ PROJECT.md                   ← 이 파일
 ### 학습 세션 플로우
 
 1. **"학습 시작"** 버튼 하나만 존재 (복습/신규 분리 없음)
-2. 세션 구성: `복습 대상(dueDate ≤ 오늘, 최대 10장)` → 부족분은 `신규 카드`로 채워 **항상 최대 10장**
-3. 신규 카드 투입 순서: 8급 → 7급 → ... → 1급 (해당 급수 소진 후 다음 급수)
-4. 복습 카드가 먼저, 그 다음 신규 카드 (순서 섞지 않음)
+2. 세션 카드 구성 우선순위 (최대 10장):
+   - **① 복습 대상(dueDate ≤ 오늘) 중 정답률 < 50%** (약한 카드 우선)
+   - **② 미복습(dueDate > 오늘)지만 정답률 < 50%** (앞당겨 출제)
+   - **③ 복습 대상 중 정답률 ≥ 50%** (정상 복습)
+   - **④ 신규 카드** (①+②가 0장일 때만 투입, 8급→1급 순)
+3. 약한 카드(①+②)가 단 한 장이라도 존재하면 신규 카드는 투입되지 않음
 
 ### 신규 카드 인트로 화면
 
