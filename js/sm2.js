@@ -154,9 +154,7 @@ const SM2 = (() => {
   function introduce(id) {
     const state = loadState();
     if (state[id]) return;
-    const due = new Date();
-    due.setDate(due.getDate() + 1);
-    state[id] = { interval: 1, repetition: 0, efactor: DEFAULT_EFACTOR, dueDate: due.toISOString().split('T')[0] };
+    state[id] = { interval: 1, repetition: 0, efactor: DEFAULT_EFACTOR, dueDate: today() };
     saveState(state);
   }
 
