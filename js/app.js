@@ -502,7 +502,7 @@ const App = (() => {
       const SESSION_SIZE = 10;
       const due = SM2.getDueCards(HANJA_DATA).slice(0, SESSION_SIZE);
       const remaining = SESSION_SIZE - due.length;
-      const newCards = remaining > 0 ? SM2.getNewCards(HANJA_DATA).slice(0, remaining) : [];
+      const newCards = remaining > 0 ? shuffle(SM2.getNewCards(HANJA_DATA)).slice(0, remaining) : [];
       queue = [...due, ...newCards]; // 복습 먼저, 그 다음 신규
     }
 
