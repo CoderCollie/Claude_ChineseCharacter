@@ -17,9 +17,10 @@ const App = (() => {
     screen: 'home',
     queue: [],
     queueIndex: 0,
-    choices: null,   // 4지선다 보기 배열 (card 객체)
-    answered: null,  // 선택한 card.id, null이면 미답
-    quizDir: null,   // 'char2eumhun' | 'eumhun2char'
+    choices: null,     // 4지선다 보기 배열 (card 객체)
+    answered: null,    // 선택한 card.id, null이면 미답
+    quizDir: null,     // 'char2eumhun' | 'eumhun2char'
+    introduced: false, // 신규 카드 소개 화면 완료 여부
     sessionCorrect: 0,
     sessionTotal: 0,
     sessionWrong: [],
@@ -227,6 +228,32 @@ const App = (() => {
     const pct = Math.round((state.queueIndex / total) * 100);
     const isNew = !SM2.loadState()[card.id];
 
+    const header = `
+      <div class="study-header">
+        <button class="btn-icon" id="btn-home">✕</button>
+        <div class="progress-wrap">
+          <div class="progress-bar" style="width:${pct}%"></div>
+        </div>
+        <span class="progress-text">${current}/${total}</span>
+      </div>`;
+
+    // 신규 카드 + 아직 소개 안 됨 → 소개 화면
+    if (isNew && !state.introduced) {
+      return `
+      <div class="screen study-screen">
+        ${header}
+        <div class="card-area">
+          <div class="card-simple card-intro">
+            <span class="badge-new">NEW</span>
+            <div class="hanja-char">${card.char}</div>
+            <div class="eumhun" style="margin-top:12px">${card.eumhun}</div>
+            <div class="card-level" style="margin-top:8px">${LEVEL_LABELS[card.level]}</div>
+          </div>
+        </div>
+        <button class="btn-primary btn-intro-next" id="btn-intro-next">확인했어요 →</button>
+      </div>`;
+    }
+
     // 보기와 방향이 없으면 생성
     if (!state.choices) state.choices = generateChoices(card);
     if (!state.quizDir) state.quizDir = Math.random() < 0.5 ? 'char2eumhun' : 'eumhun2char';
@@ -261,13 +288,7 @@ const App = (() => {
 
     return `
     <div class="screen study-screen">
-      <div class="study-header">
-        <button class="btn-icon" id="btn-home">✕</button>
-        <div class="progress-wrap">
-          <div class="progress-bar" style="width:${pct}%"></div>
-        </div>
-        <span class="progress-text">${current}/${total}</span>
-      </div>
+      ${header}
       <div class="card-area">
         <div class="card-simple">
           ${cardBody}
@@ -415,6 +436,10 @@ const App = (() => {
     if (state.screen === 'study') {
       el('btn-home').addEventListener('click', () => { state.screen = 'home'; render(); });
 
+      if (el('btn-intro-next')) {
+        el('btn-intro-next').addEventListener('click', () => { state.introduced = true; render(); });
+      }
+
       // 미답 상태일 때만 보기 클릭 허용
       if (!state.answered) {
         document.querySelectorAll('.choice-btn').forEach((btn, i) => {
@@ -514,6 +539,7 @@ const App = (() => {
     state.choices = null;
     state.answered = null;
     state.quizDir = null;
+    state.introduced = false;
     state.sessionCorrect = 0;
     state.sessionTotal = 0;
     state.sessionWrong = [];
@@ -538,6 +564,7 @@ const App = (() => {
       state.choices = null;
       state.answered = null;
       state.quizDir = null;
+      state.introduced = false;
 
       if (state.queueIndex >= state.queue.length) {
         state.screen = 'done';
@@ -555,6 +582,7 @@ const App = (() => {
     state.choices = null;
     state.answered = null;
     state.quizDir = null;
+    state.introduced = false;
     state.sessionCorrect = 0;
     state.sessionTotal = 0;
     state.sessionWrong = [];
