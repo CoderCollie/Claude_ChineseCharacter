@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v4.9.1';
+const APP_VERSION = 'v4.9.2';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -450,7 +450,20 @@ const App = (() => {
       el('btn-home').addEventListener('click', () => { state.screen = 'home'; render(); });
 
       if (el('btn-intro-next')) {
-        el('btn-intro-next').addEventListener('click', () => { state.introduced = true; render(); });
+        el('btn-intro-next').addEventListener('click', () => {
+          const card = state.queue[state.queueIndex];
+          SM2.introduce(card.id);
+          state.queueIndex++;
+          state.choices = null;
+          state.answered = null;
+          state.quizDir = null;
+          state.introduced = false;
+          if (state.queueIndex >= state.queue.length) {
+            state.screen = 'done';
+            SM2.recordStreak();
+          }
+          render();
+        });
       }
 
       // 미답 상태일 때만 보기 클릭 허용

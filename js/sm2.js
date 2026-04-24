@@ -151,5 +151,14 @@ const SM2 = (() => {
     });
   }
 
-  return { review, isDue, isNew, getDueCards, getNewCards, getWeakCards, getStats, resetAll, loadState, recordStreak, getStreak, getBestStreak, recordAccuracy, getAccuracy, loadAccuracy };
+  function introduce(id) {
+    const state = loadState();
+    if (state[id]) return;
+    const due = new Date();
+    due.setDate(due.getDate() + 1);
+    state[id] = { interval: 1, repetition: 0, efactor: DEFAULT_EFACTOR, dueDate: due.toISOString().split('T')[0] };
+    saveState(state);
+  }
+
+  return { review, isDue, isNew, introduce, getDueCards, getNewCards, getWeakCards, getStats, resetAll, loadState, recordStreak, getStreak, getBestStreak, recordAccuracy, getAccuracy, loadAccuracy };
 })();
