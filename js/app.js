@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.2';
+const APP_VERSION = 'v5.3';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -66,6 +66,7 @@ const App = (() => {
     const streak = SM2.getStreak();
     const bestStreak = SM2.getBestStreak();
     const isNewRecord = streak > 0 && streak === bestStreak;
+    const dailyStats = SM2.getDailyStats();
 
     const progressRows = LEVELS.map(lv => {
       const cards = HANJA_BY_LEVEL[lv] || [];
@@ -117,6 +118,7 @@ const App = (() => {
       <section class="welcome-section">
         <p class="greeting">${greetingText}</p>
         <p class="sub-greeting">${subGreetingText}</p>
+        ${dailyStats.today > 0 ? `<p class="quiz-today-count">오늘 <strong>${dailyStats.today}문제</strong> 풀었어요 · 누적 <strong>${dailyStats.total}문제</strong></p>` : ''}
       </section>
 
       <section class="level-section">
@@ -704,6 +706,7 @@ const App = (() => {
     setTimeout(() => {
       SM2.review(card.id, correct ? 4 : 1);
       SM2.recordAccuracy(card.id, correct);
+      SM2.recordDailyQuiz();
       state.sessionTotal++;
       if (correct) state.sessionCorrect++;
       else state.sessionWrong.push(card);
@@ -805,6 +808,7 @@ const App = (() => {
       state.wqTotal++;
       if (correct) state.wqCorrect++;
       else state.wqWrong.push(item);
+      SM2.recordDailyQuiz();
       state.wqIndex++;
       state.wqAnswered = null;
       if (state.wqIndex >= state.wqQueue.length) state.screen = 'word-done';

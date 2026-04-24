@@ -119,6 +119,26 @@ const SM2 = (() => {
   function resetAll() {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(ACC_KEY);
+    localStorage.removeItem('hanja_daily_stats');
+  }
+
+  function recordDailyQuiz() {
+    const t = today();
+    let s;
+    try { s = JSON.parse(localStorage.getItem('hanja_daily_stats') || 'null'); } catch { s = null; }
+    if (!s) s = { date: t, count: 0, total: 0 };
+    if (s.date !== t) { s.date = t; s.count = 0; }
+    s.count++;
+    s.total++;
+    localStorage.setItem('hanja_daily_stats', JSON.stringify(s));
+  }
+
+  function getDailyStats() {
+    try {
+      const s = JSON.parse(localStorage.getItem('hanja_daily_stats') || 'null');
+      if (!s) return { today: 0, total: 0 };
+      return { today: s.date === today() ? s.count : 0, total: s.total || 0 };
+    } catch { return { today: 0, total: 0 }; }
   }
 
   function recordStreak() {
@@ -166,5 +186,5 @@ const SM2 = (() => {
     saveState(state);
   }
 
-  return { review, isDue, isNew, introduce, getDueCards, getNewCards, getWeakCards, getStats, resetAll, loadState, recordStreak, getStreak, getBestStreak, recordAccuracy, getAccuracy, loadAccuracy };
+  return { review, isDue, isNew, introduce, getDueCards, getNewCards, getWeakCards, getStats, resetAll, loadState, recordStreak, getStreak, getBestStreak, recordAccuracy, getAccuracy, loadAccuracy, recordDailyQuiz, getDailyStats };
 })();
