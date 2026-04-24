@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v4.8';
+const APP_VERSION = 'v4.8.1';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -250,7 +250,9 @@ const App = (() => {
             <div class="card-level" style="margin-top:8px">${LEVEL_LABELS[card.level]}</div>
           </div>
         </div>
-        <button class="btn-primary btn-intro-next" id="btn-intro-next">확인했어요 →</button>
+        <div class="study-footer study-footer--intro">
+          <button class="btn-primary btn-intro-next" id="btn-intro-next">확인했어요 →</button>
+        </div>
       </div>`;
     }
 
@@ -294,8 +296,10 @@ const App = (() => {
           ${cardBody}
         </div>
       </div>
-      <div class="choice-grid">
-        ${choiceBtns}
+      <div class="study-footer">
+        <div class="choice-grid">
+          ${choiceBtns}
+        </div>
       </div>
     </div>`;
   }
