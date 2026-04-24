@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v4.9.2';
+const APP_VERSION = 'v5.0';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -17,13 +17,20 @@ const App = (() => {
     screen: 'home',
     queue: [],
     queueIndex: 0,
-    choices: null,     // 4지선다 보기 배열 (card 객체)
-    answered: null,    // 선택한 card.id, null이면 미답
-    quizDir: null,     // 'char2eumhun' | 'eumhun2char'
-    introduced: false, // 신규 카드 소개 화면 완료 여부
+    choices: null,
+    answered: null,
+    quizDir: null,
+    introduced: false,
     sessionCorrect: 0,
     sessionTotal: 0,
     sessionWrong: [],
+    // 단어 퀴즈
+    wqQueue: [],
+    wqIndex: 0,
+    wqAnswered: null,
+    wqCorrect: 0,
+    wqTotal: 0,
+    wqWrong: [],
     newVersionAvailable: false,
     swRegistration: null,
     isDarkMode: localStorage.getItem('hanja_dark_mode') === 'true'
@@ -40,6 +47,8 @@ const App = (() => {
     if (state.screen === 'home') app.innerHTML = renderHome();
     else if (state.screen === 'study') app.innerHTML = renderStudy();
     else if (state.screen === 'history') app.innerHTML = renderHistory();
+    else if (state.screen === 'word-quiz') app.innerHTML = renderWordQuiz();
+    else if (state.screen === 'word-done') app.innerHTML = renderWordDone();
     else app.innerHTML = renderDone();
     bindEvents();
   }
@@ -135,6 +144,9 @@ const App = (() => {
 
       <button class="btn-primary" id="btn-start-all" ${sessionSize === 0 ? 'disabled' : ''}>
         ${sessionSize === 0 ? '오늘의 학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}
+      </button>
+      <button class="btn-secondary btn-word-quiz" id="btn-word-quiz" ${statsTotal < 10 ? 'disabled' : ''}>
+        📝 단어 퀴즈${statsTotal < 10 ? ` (${statsTotal}/10 학습 필요)` : ''}
       </button>
 
       <div class="home-footer">
@@ -385,6 +397,65 @@ const App = (() => {
     </div>`;
   }
 
+  function renderWordQuiz() {
+    const item = state.wqQueue[state.wqIndex];
+    const total = state.wqQueue.length;
+    const pct = Math.round((state.wqIndex / total) * 100);
+    const answered = state.wqAnswered;
+
+    const hanjaDisplay = item.hiddenIdx === 0
+      ? `<span class="wq-blank">?</span><span class="wq-char">${item.revealed}</span>`
+      : `<span class="wq-char">${item.revealed}</span><span class="wq-blank">?</span>`;
+
+    const choiceBtns = item.choices.map((ch, i) => {
+      let cls = 'choice-btn';
+      if (answered) {
+        if (ch === item.correct) cls += ' choice-correct';
+        else if (ch === answered) cls += ' choice-wrong';
+        else cls += ' choice-disabled';
+      }
+      return `<button class="${cls}" data-wq-idx="${i}"><span class="choice-char">${ch}</span></button>`;
+    }).join('');
+
+    return `
+    <div class="screen study-screen">
+      <div class="study-header">
+        <button class="btn-icon" id="btn-wq-home">✕</button>
+        <div class="progress-wrap">
+          <div class="progress-bar" style="width:${pct}%"></div>
+        </div>
+        <span class="progress-text">${state.wqIndex + 1}/${total}</span>
+      </div>
+      <div class="card-area">
+        <div class="card-simple wq-card">
+          <div class="wq-label">단어 완성</div>
+          <div class="wq-kor">${item.korReading}</div>
+          <div class="wq-hanja">${hanjaDisplay}</div>
+        </div>
+      </div>
+      <div class="study-footer">
+        <div class="choice-grid">${choiceBtns}</div>
+      </div>
+    </div>`;
+  }
+
+  function renderWordDone() {
+    const pct = state.wqTotal > 0 ? Math.round(state.wqCorrect / state.wqTotal * 100) : 0;
+    return `
+    <div class="screen done-screen">
+      <div class="done-icon">${pct >= 70 ? '🎉' : '📝'}</div>
+      <h2>단어 퀴즈 완료!</h2>
+      <div class="done-stats">
+        <div class="stat-box"><span class="stat-num">${state.wqTotal}</span><span class="stat-label">문제</span></div>
+        <div class="stat-box"><span class="stat-num">${state.wqCorrect}</span><span class="stat-label">정답</span></div>
+        <div class="stat-box"><span class="stat-num">${pct}%</span><span class="stat-label">정답률</span></div>
+      </div>
+      ${state.wqWrong.length > 0 ? `<button class="btn-retry" id="btn-wq-retry">틀린 문제 다시 풀기 (${state.wqWrong.length}개)</button>` : ''}
+      <button class="btn-primary btn-again" id="btn-wq-again">단어 퀴즈 다시</button>
+      <button class="btn-home-done" id="btn-wq-home-done">홈으로</button>
+    </div>`;
+  }
+
   // ── Events ─────────────────────────────────────────────────────────────────
 
   function bindEvents() {
@@ -481,6 +552,36 @@ const App = (() => {
       if (el('btn-retry')) el('btn-retry').addEventListener('click', retryWrong);
       el('btn-again').addEventListener('click', () => startSession());
       el('btn-home-done').addEventListener('click', () => { state.screen = 'home'; render(); });
+    }
+
+    if (state.screen === 'word-quiz') {
+      el('btn-wq-home').addEventListener('click', () => { state.screen = 'home'; render(); });
+      if (!state.wqAnswered) {
+        document.querySelectorAll('[data-wq-idx]').forEach((btn, i) => {
+          btn.addEventListener('click', () => answerWordQuiz(state.wqQueue[state.wqIndex].choices[i]));
+        });
+      }
+    }
+
+    if (state.screen === 'word-done') {
+      if (el('btn-wq-retry')) {
+        el('btn-wq-retry').addEventListener('click', () => {
+          state.wqQueue = shuffle([...state.wqWrong]);
+          state.wqIndex = 0;
+          state.wqAnswered = null;
+          state.wqCorrect = 0;
+          state.wqTotal = 0;
+          state.wqWrong = [];
+          state.screen = 'word-quiz';
+          render();
+        });
+      }
+      el('btn-wq-again').addEventListener('click', startWordQuiz);
+      el('btn-wq-home-done').addEventListener('click', () => { state.screen = 'home'; render(); });
+    }
+
+    if (state.screen === 'home' && el('btn-word-quiz') && !el('btn-word-quiz').disabled) {
+      el('btn-word-quiz').addEventListener('click', startWordQuiz);
     }
   }
 
@@ -617,6 +718,81 @@ const App = (() => {
     state.sessionTotal = 0;
     state.sessionWrong = [];
     render();
+  }
+
+  function buildWordQuizQueue() {
+    const smState = SM2.loadState();
+    const learnedMap = {};
+    for (const h of HANJA_DATA) {
+      if (smState[h.id]) learnedMap[h.char] = h;
+    }
+
+    const seen = new Set();
+    const items = [];
+
+    for (const card of HANJA_DATA) {
+      if (!smState[card.id]) continue;
+      for (const w of (card.words || [])) {
+        const match = w.match(/^(.+)\(([^)]+)\)$/);
+        if (!match) continue;
+        const korReading = match[1].trim();
+        const hanja = match[2];
+        if (hanja.length !== 2) continue;
+        if (!learnedMap[hanja[0]] || !learnedMap[hanja[1]]) continue;
+        if (seen.has(hanja)) continue;
+        seen.add(hanja);
+
+        const hiddenIdx = Math.random() < 0.5 ? 0 : 1;
+        const correct = hanja[hiddenIdx];
+        const revealed = hanja[1 - hiddenIdx];
+
+        // 같은 급수 우선 오답 생성
+        const correctCard = learnedMap[correct];
+        const pool = Object.values(learnedMap).filter(h => h.char !== correct && h.char !== revealed);
+        const sameLevel = shuffle(pool.filter(h => h.level === correctCard.level)).slice(0, 3).map(h => h.char);
+        const distractors = [...sameLevel];
+        if (distractors.length < 3) {
+          const others = shuffle(pool.filter(h => h.level !== correctCard.level)).slice(0, 3 - distractors.length).map(h => h.char);
+          distractors.push(...others);
+        }
+
+        items.push({ word: w, hanja, hiddenIdx, correct, revealed, korReading, choices: shuffle([correct, ...distractors]) });
+      }
+    }
+
+    return shuffle(items).slice(0, 10);
+  }
+
+  function startWordQuiz() {
+    const queue = buildWordQuizQueue();
+    if (queue.length === 0) {
+      alert('학습한 단어가 부족합니다. 더 많은 한자를 학습한 후 이용해주세요.');
+      return;
+    }
+    state.screen = 'word-quiz';
+    state.wqQueue = queue;
+    state.wqIndex = 0;
+    state.wqAnswered = null;
+    state.wqCorrect = 0;
+    state.wqTotal = 0;
+    state.wqWrong = [];
+    render();
+  }
+
+  function answerWordQuiz(selectedChar) {
+    const item = state.wqQueue[state.wqIndex];
+    const correct = selectedChar === item.correct;
+    state.wqAnswered = selectedChar;
+    render();
+    setTimeout(() => {
+      state.wqTotal++;
+      if (correct) state.wqCorrect++;
+      else state.wqWrong.push(item);
+      state.wqIndex++;
+      state.wqAnswered = null;
+      if (state.wqIndex >= state.wqQueue.length) state.screen = 'word-done';
+      render();
+    }, correct ? 300 : 600);
   }
 
   function shuffle(arr) {

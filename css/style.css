@@ -408,3 +408,14 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
 body.dark-theme .choice-btn { background: var(--surface); color: var(--text); border-color: var(--border); }
 body.dark-theme .choice-correct { background: #052e16; border-color: var(--right); color: var(--right); }
 body.dark-theme .choice-wrong   { background: #450a0a; border-color: var(--wrong); color: var(--wrong); }
+
+/* ── 단어 퀴즈 ─────────────────────────────────────────────────────────────── */
+.btn-word-quiz { width: 100%; margin-top: 12px; justify-content: center; }
+.btn-word-quiz:disabled { opacity: 0.45; cursor: default; }
+
+.wq-card { gap: 6px; }
+.wq-label { font-size: .7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; }
+.wq-kor { font-size: 1.5rem; font-weight: 700; color: var(--text); margin-top: 4px; }
+.wq-hanja { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; }
+.wq-char { font-size: 3.8rem; font-weight: 700; line-height: 1; }
+.wq-blank { font-size: 3.8rem; font-weight: 800; line-height: 1; color: var(--primary); background: rgba(37,99,235,.08); border-radius: 16px; padding: 4px 20px; min-width: 88px; text-align: center; }
