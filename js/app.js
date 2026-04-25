@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.9';
+const APP_VERSION = 'v5.10';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -413,6 +413,9 @@ const App = (() => {
     const total = state.wqQueue.length;
     const pct = Math.round((state.wqIndex / total) * 100);
     const answered = state.wqAnswered;
+    const isWrong = answered && answered !== item.correct;
+
+    const correctCard = isWrong ? HANJA_DATA.find(h => h.char === item.correct) : null;
 
     const hanjaDisplay = item.hiddenIdx === 0
       ? `<span class="wq-blank">?</span><span class="wq-char">${item.revealed}</span>`
@@ -442,6 +445,7 @@ const App = (() => {
           <div class="wq-label">단어 완성</div>
           <div class="wq-kor">${item.korReading}</div>
           <div class="wq-hanja">${hanjaDisplay}</div>
+          ${correctCard ? `<div class="wq-hint">${correctCard.char} = ${correctCard.eumhun}</div>` : ''}
         </div>
       </div>
       <div class="study-footer">
