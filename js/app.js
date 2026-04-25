@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.6';
+const APP_VERSION = 'v5.7';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -135,7 +135,7 @@ const App = (() => {
       <button class="btn-secondary btn-word-quiz" id="btn-word-quiz" ${statsTotal < 10 ? 'disabled' : ''}>
         📝 단어 퀴즈${statsTotal < 10 ? ` (${statsTotal}/10 학습 필요)` : ''}
       </button>
-      <button class="btn-text" id="btn-history">학습 기록 보기 →</button>
+      <button class="btn-secondary" id="btn-history">학습 기록 보기 →</button>
 
       <div class="home-footer">
         <span class="version-badge clickable" id="btn-version" title="강제 업데이트">${APP_VERSION} (force update)</span>

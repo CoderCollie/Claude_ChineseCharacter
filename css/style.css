@@ -374,8 +374,6 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
 .btn-secondary { background: var(--surface); color: var(--text); border: 1.5px solid var(--border); }
 .btn-secondary:active { background: var(--bg); }
 
-.btn-text { background: none; border: none; color: var(--text-muted); font-size: 0.9rem; padding: 10px; width: 100%; cursor: pointer; }
-.btn-text:active { color: var(--primary); }
 .btn-wrong { background: #fef2f2; color: var(--wrong); }
 .btn-wrong:active { background: #fee2e2; }
 .btn-right { background: #f0fdf4; color: var(--right); }
