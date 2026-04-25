@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.12';
+const APP_VERSION = 'v5.13';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -533,6 +533,9 @@ const App = (() => {
         el('btn-intro-next').addEventListener('click', () => {
           const card = state.queue[state.queueIndex];
           SM2.introduce(card.id);
+          // 인트로 확인 후 3장 뒤에 퀴즈로 재등장 (기억 고정)
+          const insertAt = Math.min(state.queueIndex + 1 + 3, state.queue.length);
+          state.queue.splice(insertAt, 0, card);
           state.queueIndex++;
           state.choices = null;
           state.answered = null;
