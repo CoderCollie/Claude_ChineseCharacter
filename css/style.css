@@ -302,7 +302,7 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
 .card-back { transform: rotateY(180deg); }
 
 .badge-new { position: absolute; top: 24px; left: 24px; background: var(--primary); color: #fff; font-size: .7rem; font-weight: 800; padding: 4px 10px; border-radius: 8px; }
-.badge-retry { position: absolute; top: 24px; left: 24px; background: #f59e0b; color: #fff; font-size: .7rem; font-weight: 800; padding: 4px 10px; border-radius: 8px; }
+.card-retry { border: 2px solid #f59e0b !important; box-shadow: 0 0 0 4px rgba(245,158,11,0.12), var(--shadow) !important; }
 .hanja-char { font-size: 6rem; font-weight: 700; color: var(--text); line-height: 1; margin-bottom: 20px; }
 .card-hint { font-size: .85rem; color: var(--text-muted); opacity: .6; }
 

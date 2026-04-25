@@ -9,8 +9,8 @@
 
 | 항목 | 값 |
 |------|-----|
-| `APP_VERSION` (js/app.js) | `v5.11` |
-| SW 캐시 버전 (sw.js) | `hanja-v34` |
+| `APP_VERSION` (js/app.js) | `v5.12` |
+| SW 캐시 버전 (sw.js) | `hanja-v35` |
 | 최종 업데이트 | 2026-04-24 |
 
 ---
