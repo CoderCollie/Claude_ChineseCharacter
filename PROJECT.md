@@ -9,8 +9,8 @@
 
 | 항목 | 값 |
 |------|-----|
-| `APP_VERSION` (js/app.js) | `v5.3` |
-| SW 캐시 버전 (sw.js) | `hanja-v26` |
+| `APP_VERSION` (js/app.js) | `v5.4` |
+| SW 캐시 버전 (sw.js) | `hanja-v27` |
 | 최종 업데이트 | 2026-04-24 |
 
 ---
@@ -112,7 +112,7 @@ PROJECT.md                   ← 이 파일
 | `hanja_streak` | JSON object | 연속 학습 스트릭 `{ lastDate, count, best }` |
 | `hanja_accuracy` | JSON object | 카드별 정답률 `{ [id]: { c: 정답수, t: 총시도수 } }` |
 | `hanja_dark_mode` | string | `"true"` / `"false"` |
-| `hanja_daily_stats` | JSON object | 퀴즈 풀이 수 `{ date, count, total }` — date가 오늘과 다르면 count 리셋 |
+| `hanja_daily_stats` | JSON object | 퀴즈 풀이 수 `{ total, history: { "YYYY-MM-DD": N } }` — 일별 누적 기록 |
 
 **주의사항**:
 - `SM2.resetAll()`은 `hanja_sm2_state`와 `hanja_accuracy`만 삭제 (streak은 유지)

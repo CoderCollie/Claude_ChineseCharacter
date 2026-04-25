@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.3';
+const APP_VERSION = 'v5.4';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -67,6 +67,8 @@ const App = (() => {
     const bestStreak = SM2.getBestStreak();
     const isNewRecord = streak > 0 && streak === bestStreak;
     const dailyStats = SM2.getDailyStats();
+    const recentHistory = SM2.getRecentHistory(5);
+    const maxCount = Math.max(...recentHistory.map(d => d.count), 1);
 
     const progressRows = LEVELS.map(lv => {
       const cards = HANJA_BY_LEVEL[lv] || [];
@@ -143,6 +145,22 @@ const App = (() => {
           <span class="stat-desc">공부한 한자 →</span>
         </div>
       </section>
+
+      ${recentHistory.some(d => d.count > 0) ? `
+      <section class="daily-chart-section">
+        <p class="section-label">최근 5일 학습량</p>
+        <div class="daily-chart">
+          ${recentHistory.map(d => `
+            <div class="chart-col">
+              <span class="chart-num">${d.count > 0 ? d.count : ''}</span>
+              <div class="chart-bar-wrap">
+                <div class="chart-bar${d.label === '오늘' ? ' chart-bar-today' : ''}" style="height:${Math.max(d.count > 0 ? 4 : 0, Math.round(d.count / maxCount * 100))}%"></div>
+              </div>
+              <span class="chart-label${d.label === '오늘' ? ' chart-label-today' : ''}">${d.label}</span>
+            </div>
+          `).join('')}
+        </div>
+      </section>` : ''}
 
       <button class="btn-primary" id="btn-start-all" ${sessionSize === 0 ? 'disabled' : ''}>
         ${sessionSize === 0 ? '오늘의 학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}

@@ -122,23 +122,44 @@ const SM2 = (() => {
     localStorage.removeItem('hanja_daily_stats');
   }
 
+  function _loadDailyStats() {
+    try {
+      let s = JSON.parse(localStorage.getItem('hanja_daily_stats') || 'null');
+      if (!s) return { total: 0, history: {} };
+      // 구형 포맷 { date, count, total } → 신형 { total, history } 마이그레이션
+      if (s.date !== undefined && !s.history) {
+        s = { total: s.total || 0, history: (s.date && s.count > 0) ? { [s.date]: s.count } : {} };
+      }
+      if (!s.history) s.history = {};
+      return s;
+    } catch { return { total: 0, history: {} }; }
+  }
+
   function recordDailyQuiz() {
     const t = today();
-    let s;
-    try { s = JSON.parse(localStorage.getItem('hanja_daily_stats') || 'null'); } catch { s = null; }
-    if (!s) s = { date: t, count: 0, total: 0 };
-    if (s.date !== t) { s.date = t; s.count = 0; }
-    s.count++;
-    s.total++;
+    const s = _loadDailyStats();
+    s.history[t] = (s.history[t] || 0) + 1;
+    s.total = (s.total || 0) + 1;
     localStorage.setItem('hanja_daily_stats', JSON.stringify(s));
   }
 
   function getDailyStats() {
-    try {
-      const s = JSON.parse(localStorage.getItem('hanja_daily_stats') || 'null');
-      if (!s) return { today: 0, total: 0 };
-      return { today: s.date === today() ? s.count : 0, total: s.total || 0 };
-    } catch { return { today: 0, total: 0 }; }
+    const s = _loadDailyStats();
+    return { today: s.history[today()] || 0, total: s.total || 0 };
+  }
+
+  function getRecentHistory(days) {
+    days = days || 5;
+    const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
+    const history = _loadDailyStats().history;
+    const result = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      result.push({ date: dateStr, count: history[dateStr] || 0, label: i === 0 ? '오늘' : DAY_LABELS[d.getDay()] });
+    }
+    return result;
   }
 
   function recordStreak() {
@@ -186,5 +207,5 @@ const SM2 = (() => {
     saveState(state);
   }
 
-  return { review, isDue, isNew, introduce, getDueCards, getNewCards, getWeakCards, getStats, resetAll, loadState, recordStreak, getStreak, getBestStreak, recordAccuracy, getAccuracy, loadAccuracy, recordDailyQuiz, getDailyStats };
+  return { review, isDue, isNew, introduce, getDueCards, getNewCards, getWeakCards, getStats, resetAll, loadState, recordStreak, getStreak, getBestStreak, recordAccuracy, getAccuracy, loadAccuracy, recordDailyQuiz, getDailyStats, getRecentHistory };
 })();
