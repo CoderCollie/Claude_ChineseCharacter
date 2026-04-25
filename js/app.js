@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.5';
+const APP_VERSION = 'v5.6';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -70,18 +70,6 @@ const App = (() => {
     const recentHistory = SM2.getRecentHistory(5);
     const maxCount = Math.max(...recentHistory.map(d => d.count), 1);
 
-    const progressRows = LEVELS.map(lv => {
-      const cards = HANJA_BY_LEVEL[lv] || [];
-      const total = cards.length;
-      const learned = cards.filter(h => smState[h.id]).length;
-      const pct = total > 0 ? Math.round(learned / total * 100) : 0;
-      return `<div class="lv-prog-row">
-        <span class="lv-prog-label">${LEVEL_LABELS[lv]}</span>
-        <div class="lv-prog-track"><div class="lv-prog-fill" style="width:${pct}%"></div></div>
-        <span class="lv-prog-num">${learned}/${total}</span>
-      </div>`;
-    }).join('');
-
     const SESSION_SIZE = 10;
     const dueCount = Math.min(due, SESSION_SIZE);
     const newCount = Math.min(newAvail, SESSION_SIZE - dueCount);
@@ -123,10 +111,6 @@ const App = (() => {
         ${dailyStats.today > 0 ? `<p class="quiz-today-count">오늘 <strong>${dailyStats.today}문제</strong> 풀었어요 · 누적 <strong>${dailyStats.total}문제</strong></p>` : ''}
       </section>
 
-      <section class="level-section">
-        <p class="section-label">학습 진도</p>
-        <div class="progress-list">${progressRows}</div>
-      </section>
 
 
       ${recentHistory.some(d => d.count > 0) ? `
@@ -334,6 +318,18 @@ const App = (() => {
     const accState = SM2.loadAccuracy();
     const studied = HANJA_DATA.filter(h => smState[h.id]);
 
+    const progressRows = LEVELS.map(lv => {
+      const cards = HANJA_BY_LEVEL[lv] || [];
+      const total = cards.length;
+      const learned = cards.filter(h => smState[h.id]).length;
+      const pct = total > 0 ? Math.round(learned / total * 100) : 0;
+      return `<div class="lv-prog-row">
+        <span class="lv-prog-label">${LEVEL_LABELS[lv]}</span>
+        <div class="lv-prog-track"><div class="lv-prog-fill" style="width:${pct}%"></div></div>
+        <span class="lv-prog-num">${learned}/${total}</span>
+      </div>`;
+    }).join('');
+
     function accPct(h) {
       const r = accState[h.id];
       return r && r.t > 0 ? r.c / r.t : 1;
@@ -375,6 +371,10 @@ const App = (() => {
         <span class="progress-text">${studied.length}장</span>
       </div>
       <div class="hist-body">
+        <section class="hist-section">
+          <h3 class="hist-title">📊 급수별 진행률</h3>
+          <div class="progress-list">${progressRows}</div>
+        </section>
         ${section('잘 아는 한자', '💪', strong, 'strong', '아직 없어요. 정답을 꾸준히 맞춰보세요!')}
         ${section('학습 중', '📖', learning, 'learning', '없어요.')}
         ${section('헷갈리는 한자', '🔄', weak, 'weak', '없어요. 모두 잘 외우고 있어요!')}
