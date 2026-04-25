@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.4';
+const APP_VERSION = 'v5.5';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -128,23 +128,6 @@ const App = (() => {
         <div class="progress-list">${progressRows}</div>
       </section>
 
-      <section class="stats-section">
-        <div class="stat-box">
-          <span class="stat-num">${due}</span>
-          <span class="stat-label">복습</span>
-          <span class="stat-desc">오늘 복습 대상</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-num">${newCount}</span>
-          <span class="stat-label">신규</span>
-          <span class="stat-desc">이번 세션</span>
-        </div>
-        <div class="stat-box clickable" id="btn-history">
-          <span class="stat-num">${statsTotal}</span>
-          <span class="stat-label">누적</span>
-          <span class="stat-desc">공부한 한자 →</span>
-        </div>
-      </section>
 
       ${recentHistory.some(d => d.count > 0) ? `
       <section class="daily-chart-section">
@@ -168,6 +151,7 @@ const App = (() => {
       <button class="btn-secondary btn-word-quiz" id="btn-word-quiz" ${statsTotal < 10 ? 'disabled' : ''}>
         📝 단어 퀴즈${statsTotal < 10 ? ` (${statsTotal}/10 학습 필요)` : ''}
       </button>
+      <button class="btn-text" id="btn-history">학습 기록 보기 →</button>
 
       <div class="home-footer">
         <span class="version-badge clickable" id="btn-version" title="강제 업데이트">${APP_VERSION} (force update)</span>
