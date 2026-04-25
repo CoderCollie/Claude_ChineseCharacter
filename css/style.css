@@ -483,8 +483,5 @@ body.dark-theme .choice-wrong   { background: #450a0a; border-color: var(--wrong
 .wq-hanja { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; }
 .wq-char { font-size: 3.8rem; font-weight: 700; line-height: 1; }
 .wq-blank { font-size: 3.8rem; font-weight: 800; line-height: 1; color: var(--primary); background: rgba(37,99,235,.08); border-radius: 16px; padding: 4px 20px; min-width: 88px; text-align: center; }
-.wq-meanings { display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; justify-content: center; }
-.wq-mean-item { display: flex; align-items: baseline; gap: 4px; }
-.wq-mean-hanja { font-size: 1.05rem; font-weight: 700; color: var(--text); }
-.wq-mean-eumhun { font-size: 0.78rem; color: var(--text-muted); }
-.wq-mean-sep { color: var(--border); }
+.wq-kor-item { display: inline; }
+.wq-kor-meaning { font-size: 0.78rem; color: var(--text-muted); font-weight: 400; }

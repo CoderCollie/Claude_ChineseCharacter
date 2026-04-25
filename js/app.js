@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.14';
+const APP_VERSION = 'v5.15';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -749,7 +749,7 @@ const App = (() => {
         SM2.recordStreak();
       }
       render();
-    }, correct ? 300 : 600);
+    }, correct ? 600 : 900);
   }
 
   function retryWrong() {
@@ -845,18 +845,21 @@ const App = (() => {
       else btn.classList.add('choice-disabled');
       btn.disabled = true;
     });
-    // 정답/오답 무관하게 양쪽 한자 훈음 표시
+    // wq-kor 텍스트를 그 자리에서 훈음으로 변환
     const c0 = HANJA_DATA.find(h => h.char === item.hanja[0]);
     const c1 = HANJA_DATA.find(h => h.char === item.hanja[1]);
-    const wqCard = document.querySelector('.wq-card');
-    if (wqCard && c0 && c1) {
-      const div = document.createElement('div');
-      div.className = 'wq-meanings';
-      div.innerHTML =
-        `<span class="wq-mean-item"><span class="wq-mean-hanja">${item.hanja[0]}</span><span class="wq-mean-eumhun">${c0.eumhun}</span></span>` +
-        `<span class="wq-mean-sep">·</span>` +
-        `<span class="wq-mean-item"><span class="wq-mean-hanja">${item.hanja[1]}</span><span class="wq-mean-eumhun">${c1.eumhun}</span></span>`;
-      wqCard.appendChild(div);
+    const wqKor = document.querySelector('.wq-kor');
+    if (wqKor && c0 && c1) {
+      function splitEumhun(eumhun) {
+        const parts = eumhun.split(' ');
+        return { meaning: parts.slice(0, -1).join(' '), reading: parts[parts.length - 1] };
+      }
+      const e0 = splitEumhun(c0.eumhun);
+      const e1 = splitEumhun(c1.eumhun);
+      wqKor.innerHTML =
+        `<span class="wq-kor-item"><span class="wq-kor-meaning">(${e0.meaning})</span>${e0.reading}</span>` +
+        ` ` +
+        `<span class="wq-kor-item"><span class="wq-kor-meaning">(${e1.meaning})</span>${e1.reading}</span>`;
     }
     setTimeout(() => {
       state.wqTotal++;
@@ -868,7 +871,7 @@ const App = (() => {
       state.wqAnswered = null;
       if (state.wqIndex >= state.wqQueue.length) state.screen = 'word-done';
       render();
-    }, correct ? 300 : 600);
+    }, correct ? 600 : 900);
   }
 
   function shuffle(arr) {
