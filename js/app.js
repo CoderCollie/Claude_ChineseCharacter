@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.10';
+const APP_VERSION = 'v5.11';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -413,9 +413,6 @@ const App = (() => {
     const total = state.wqQueue.length;
     const pct = Math.round((state.wqIndex / total) * 100);
     const answered = state.wqAnswered;
-    const isWrong = answered && answered !== item.correct;
-
-    const correctCard = isWrong ? HANJA_DATA.find(h => h.char === item.correct) : null;
 
     const hanjaDisplay = item.hiddenIdx === 0
       ? `<span class="wq-blank">?</span><span class="wq-char">${item.revealed}</span>`
@@ -445,7 +442,6 @@ const App = (() => {
           <div class="wq-label">단어 완성</div>
           <div class="wq-kor">${item.korReading}</div>
           <div class="wq-hanja">${hanjaDisplay}</div>
-          ${correctCard ? `<div class="wq-hint">${correctCard.char} = ${correctCard.eumhun}</div>` : ''}
         </div>
       </div>
       <div class="study-footer">
@@ -715,7 +711,14 @@ const App = (() => {
     const correct = selectedCard.id === card.id;
 
     state.answered = selectedCard.id;
-    render(); // 피드백 표시
+    // Fix A: 전체 render 대신 버튼 클래스만 직접 업데이트 (즉각 반응)
+    document.querySelectorAll('.choice-btn').forEach((btn, i) => {
+      const c = state.choices[i];
+      if (c.id === card.id) btn.classList.add('choice-correct');
+      else if (c.id === selectedCard.id) btn.classList.add('choice-wrong');
+      else btn.classList.add('choice-disabled');
+      btn.disabled = true;
+    });
 
     setTimeout(() => {
       const retryCount = state.retryMap[card.id] || 0;
@@ -827,7 +830,27 @@ const App = (() => {
     const item = state.wqQueue[state.wqIndex];
     const correct = selectedChar === item.correct;
     state.wqAnswered = selectedChar;
-    render();
+    // Fix A: 버튼 클래스 직접 업데이트
+    document.querySelectorAll('[data-wq-idx]').forEach((btn, i) => {
+      const ch = item.choices[i];
+      if (ch === item.correct) btn.classList.add('choice-correct');
+      else if (ch === selectedChar) btn.classList.add('choice-wrong');
+      else btn.classList.add('choice-disabled');
+      btn.disabled = true;
+    });
+    // 오답 시 힌트 DOM 직접 삽입
+    if (!correct) {
+      const correctCard = HANJA_DATA.find(h => h.char === item.correct);
+      if (correctCard) {
+        const wqCard = document.querySelector('.wq-card');
+        if (wqCard) {
+          const hint = document.createElement('div');
+          hint.className = 'wq-hint';
+          hint.textContent = `${correctCard.char} = ${correctCard.eumhun}`;
+          wqCard.appendChild(hint);
+        }
+      }
+    }
     setTimeout(() => {
       state.wqTotal++;
       if (correct) state.wqCorrect++;

@@ -4,15 +4,21 @@ const SM2 = (() => {
   const STORAGE_KEY = 'hanja_sm2_state';
   const DEFAULT_EFACTOR = 2.5;
 
+  let _sm2Cache = null;
+  let _accCache = null;
+
   function loadState() {
+    if (_sm2Cache) return _sm2Cache;
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      _sm2Cache = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
     } catch {
-      return {};
+      _sm2Cache = {};
     }
+    return _sm2Cache;
   }
 
   function saveState(state) {
+    _sm2Cache = state;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }
 
@@ -97,7 +103,13 @@ const SM2 = (() => {
   const ACC_KEY = 'hanja_accuracy';
 
   function loadAccuracy() {
-    try { return JSON.parse(localStorage.getItem(ACC_KEY) || '{}'); } catch { return {}; }
+    if (_accCache) return _accCache;
+    try {
+      _accCache = JSON.parse(localStorage.getItem(ACC_KEY) || '{}');
+    } catch {
+      _accCache = {};
+    }
+    return _accCache;
   }
 
   function recordAccuracy(id, correct) {
@@ -117,6 +129,8 @@ const SM2 = (() => {
   }
 
   function resetAll() {
+    _sm2Cache = null;
+    _accCache = null;
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(ACC_KEY);
     localStorage.removeItem('hanja_daily_stats');
