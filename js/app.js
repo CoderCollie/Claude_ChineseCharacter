@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.7';
+const APP_VERSION = 'v5.8';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -24,6 +24,7 @@ const App = (() => {
     sessionCorrect: 0,
     sessionTotal: 0,
     sessionWrong: [],
+    retryMap: {},      // { [card.id]: 재시도 횟수 }
     // 단어 퀴즈
     wqQueue: [],
     wqIndex: 0,
@@ -288,11 +289,15 @@ const App = (() => {
       ? `<span class="badge-acc ${acc.pct < 50 ? 'badge-acc-low' : acc.pct < 80 ? 'badge-acc-mid' : 'badge-acc-high'}">${acc.pct}% (${acc.correct}/${acc.total})</span>`
       : '';
 
+    const retryCount = state.retryMap[card.id] || 0;
+    const retryBadge = retryCount > 0
+      ? `<span class="badge-retry">🔄 재시도 ${retryCount}/2</span>` : '';
+
     const cardBody = dir === 'char2eumhun'
-      ? `${isNew ? '<span class="badge-new">NEW</span>' : ''}${accBadge}
+      ? `${isNew ? '<span class="badge-new">NEW</span>' : ''}${retryBadge}${accBadge}
          <div class="hanja-char">${card.char}</div>
          <div class="card-level">${LEVEL_LABELS[card.level]}</div>`
-      : `${isNew ? '<span class="badge-new">NEW</span>' : ''}${accBadge}
+      : `${isNew ? '<span class="badge-new">NEW</span>' : ''}${retryBadge}${accBadge}
          <div class="card-hint" style="font-size:.8rem;margin-bottom:8px">${LEVEL_LABELS[card.level]}</div>
          <div class="eumhun" style="font-size:1.8rem;font-weight:800">${card.eumhun}</div>
          <div class="card-hint" style="margin-top:12px">한자를 고르세요</div>`;
@@ -695,6 +700,7 @@ const App = (() => {
     state.sessionCorrect = 0;
     state.sessionTotal = 0;
     state.sessionWrong = [];
+    state.retryMap = {};
     render();
   }
 
@@ -706,12 +712,21 @@ const App = (() => {
     render(); // 피드백 표시
 
     setTimeout(() => {
-      SM2.review(card.id, correct ? 4 : 1);
-      SM2.recordAccuracy(card.id, correct);
-      SM2.recordDailyQuiz();
+      const retryCount = state.retryMap[card.id] || 0;
+      SM2.recordDailyQuiz(); // 매 시도마다 카운트
       state.sessionTotal++;
-      if (correct) state.sessionCorrect++;
-      else state.sessionWrong.push(card);
+
+      if (!correct && retryCount < 2) {
+        // 재시도: 큐 끝에 추가, SM2/정답률은 최종 결과 때 기록
+        state.retryMap[card.id] = retryCount + 1;
+        state.queue.push(card);
+      } else {
+        // 최종 결과 (정답 or 재시도 2회 소진)
+        SM2.review(card.id, correct ? 4 : 1);
+        SM2.recordAccuracy(card.id, correct);
+        if (correct) state.sessionCorrect++;
+        else state.sessionWrong.push(card);
+      }
 
       state.queueIndex++;
       state.choices = null;
@@ -739,6 +754,7 @@ const App = (() => {
     state.sessionCorrect = 0;
     state.sessionTotal = 0;
     state.sessionWrong = [];
+    state.retryMap = {};
     render();
   }
 
