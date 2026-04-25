@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.13';
+const APP_VERSION = 'v5.14';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -808,7 +808,13 @@ const App = (() => {
       }
     }
 
-    return shuffle(items).slice(0, 10);
+    // SRS 우선순위: 복습 대상 → 신규 → 아직 복습일 안 된 단어
+    const wqState = SM2.loadWqState();
+    const t = new Date().toISOString().split('T')[0];
+    const due    = shuffle(items.filter(i => wqState[i.hanja] && wqState[i.hanja].dueDate <= t));
+    const newW   = shuffle(items.filter(i => !wqState[i.hanja]));
+    const notDue = shuffle(items.filter(i => wqState[i.hanja] && wqState[i.hanja].dueDate > t));
+    return [...due, ...newW, ...notDue].slice(0, 10);
   }
 
   function startWordQuiz() {
@@ -839,23 +845,24 @@ const App = (() => {
       else btn.classList.add('choice-disabled');
       btn.disabled = true;
     });
-    // 오답 시 힌트 DOM 직접 삽입
-    if (!correct) {
-      const correctCard = HANJA_DATA.find(h => h.char === item.correct);
-      if (correctCard) {
-        const wqCard = document.querySelector('.wq-card');
-        if (wqCard) {
-          const hint = document.createElement('div');
-          hint.className = 'wq-hint';
-          hint.textContent = `${correctCard.char} = ${correctCard.eumhun}`;
-          wqCard.appendChild(hint);
-        }
-      }
+    // 정답/오답 무관하게 양쪽 한자 훈음 표시
+    const c0 = HANJA_DATA.find(h => h.char === item.hanja[0]);
+    const c1 = HANJA_DATA.find(h => h.char === item.hanja[1]);
+    const wqCard = document.querySelector('.wq-card');
+    if (wqCard && c0 && c1) {
+      const div = document.createElement('div');
+      div.className = 'wq-meanings';
+      div.innerHTML =
+        `<span class="wq-mean-item"><span class="wq-mean-hanja">${item.hanja[0]}</span><span class="wq-mean-eumhun">${c0.eumhun}</span></span>` +
+        `<span class="wq-mean-sep">·</span>` +
+        `<span class="wq-mean-item"><span class="wq-mean-hanja">${item.hanja[1]}</span><span class="wq-mean-eumhun">${c1.eumhun}</span></span>`;
+      wqCard.appendChild(div);
     }
     setTimeout(() => {
       state.wqTotal++;
       if (correct) state.wqCorrect++;
       else state.wqWrong.push(item);
+      SM2.reviewWord(item.hanja, correct);
       SM2.recordDailyQuiz();
       state.wqIndex++;
       state.wqAnswered = null;

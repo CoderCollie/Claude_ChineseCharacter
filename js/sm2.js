@@ -128,12 +128,55 @@ const SM2 = (() => {
     return { correct: r.c, total: r.t, pct: Math.round(r.c / r.t * 100) };
   }
 
+  const WQ_KEY = 'hanja_wq_state';
+  let _wqCache = null;
+
+  function loadWqState() {
+    if (_wqCache) return _wqCache;
+    try { _wqCache = JSON.parse(localStorage.getItem(WQ_KEY) || '{}'); }
+    catch { _wqCache = {}; }
+    return _wqCache;
+  }
+
+  function saveWqState(s) {
+    _wqCache = s;
+    localStorage.setItem(WQ_KEY, JSON.stringify(s));
+  }
+
+  function reviewWord(hanja, correct) {
+    const s = loadWqState();
+    const card = s[hanja] || { interval: 0, repetition: 0, efactor: DEFAULT_EFACTOR, dueDate: null, lastReviewed: null };
+    let { interval, repetition, efactor, dueDate } = card;
+    const alreadyToday = card.lastReviewed === today();
+    const quality = correct ? 4 : 1;
+
+    if (quality >= 3) {
+      if (!alreadyToday) {
+        if (repetition === 0) interval = 1;
+        else if (repetition === 1) interval = 6;
+        else interval = Math.round(interval * efactor);
+        repetition++;
+        const due = new Date(); due.setDate(due.getDate() + interval);
+        dueDate = due.toISOString().split('T')[0];
+      }
+    } else {
+      interval = 1; repetition = 0;
+      const due = new Date(); due.setDate(due.getDate() + 1);
+      dueDate = due.toISOString().split('T')[0];
+    }
+    efactor = Math.max(1.3, efactor + 0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+    s[hanja] = { interval, repetition, efactor, dueDate, lastReviewed: today() };
+    saveWqState(s);
+  }
+
   function resetAll() {
     _sm2Cache = null;
     _accCache = null;
+    _wqCache = null;
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(ACC_KEY);
     localStorage.removeItem('hanja_daily_stats');
+    localStorage.removeItem(WQ_KEY);
   }
 
   function _loadDailyStats() {
@@ -221,5 +264,5 @@ const SM2 = (() => {
     saveState(state);
   }
 
-  return { review, isDue, isNew, introduce, getDueCards, getNewCards, getWeakCards, getStats, resetAll, loadState, recordStreak, getStreak, getBestStreak, recordAccuracy, getAccuracy, loadAccuracy, recordDailyQuiz, getDailyStats, getRecentHistory };
+  return { review, isDue, isNew, introduce, getDueCards, getNewCards, getWeakCards, getStats, resetAll, loadState, recordStreak, getStreak, getBestStreak, recordAccuracy, getAccuracy, loadAccuracy, recordDailyQuiz, getDailyStats, getRecentHistory, loadWqState, reviewWord };
 })();
