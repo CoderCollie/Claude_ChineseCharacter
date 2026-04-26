@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.27';
+const APP_VERSION = 'v5.28';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -118,7 +118,7 @@ const App = (() => {
       <section class="welcome-section">
         <p class="greeting">${greetingText}</p>
         <p class="sub-greeting">${subGreetingText}</p>
-        ${dailyStats.today > 0 ? `<p class="quiz-today-count">오늘 <strong>+${dailyStats.today * 10} XP</strong> 획득 · 총 <strong>${dailyStats.total * 10} XP</strong></p>` : ''}
+        ${dailyStats.today > 0 ? `<p class="quiz-today-count">오늘 <strong>+${dailyStats.today} XP</strong> 획득 · 총 <strong>${dailyStats.total} XP</strong></p>` : ''}
       </section>
 
 
