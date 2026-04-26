@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.17';
+const APP_VERSION = 'v5.18';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -845,7 +845,7 @@ const App = (() => {
         SM2.recordStreak();
       }
       render();
-    }, correct ? 600 : 900);
+    }, 900);
   }
 
   function retryWrong() {
@@ -986,7 +986,7 @@ const App = (() => {
       state.sqAnswered = null;
       if (state.sqIndex >= state.sqQueue.length) state.screen = 'story-done';
       render();
-    }, correct ? 600 : 900);
+    }, 900);
   }
 
   function startWordQuiz() {
@@ -1043,7 +1043,7 @@ const App = (() => {
       state.wqAnswered = null;
       if (state.wqIndex >= state.wqQueue.length) state.screen = 'word-done';
       render();
-    }, correct ? 600 : 900);
+    }, 900);
   }
 
   function shuffle(arr) {
