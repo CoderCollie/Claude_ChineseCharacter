@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.18';
+const APP_VERSION = 'v5.19';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -144,11 +144,11 @@ const App = (() => {
         <button class="btn-primary" id="btn-start-all" ${sessionSize === 0 ? 'disabled' : ''}>
           ${sessionSize === 0 ? '오늘의 학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}
         </button>
-        <button class="btn-secondary btn-word-quiz" id="btn-word-quiz" ${statsTotal < 10 ? 'disabled' : ''}>
-          📝 단어 퀴즈${statsTotal < 10 ? ` (${statsTotal}/10 학습 필요)` : ''}
-        </button>
         <button class="btn-secondary" id="btn-story-quiz" ${storyAvail < 10 ? 'disabled' : ''}>
           📖 스토리 퀴즈${storyAvail < 10 ? ` (${storyAvail}/10 학습 필요)` : ''}
+        </button>
+        <button class="btn-secondary btn-word-quiz" id="btn-word-quiz" ${statsTotal < 10 ? 'disabled' : ''}>
+          📝 단어 퀴즈${statsTotal < 10 ? ` (${statsTotal}/10 학습 필요)` : ''}
         </button>
         <button class="btn-secondary" id="btn-history">학습 기록 보기 →</button>
       </div>
@@ -507,7 +507,6 @@ const App = (() => {
       </div>
       <div class="card-area">
         <div class="card-simple sq-card">
-          <div class="sq-label">어떤 한자일까요?</div>
           <div class="sq-story">${card.story}</div>
           ${showHint ? `<div class="sq-eumhun">${card.eumhun}</div>` : ''}
         </div>
@@ -986,7 +985,7 @@ const App = (() => {
       state.sqAnswered = null;
       if (state.sqIndex >= state.sqQueue.length) state.screen = 'story-done';
       render();
-    }, 900);
+    }, correct ? 900 : 1500);
   }
 
   function startWordQuiz() {

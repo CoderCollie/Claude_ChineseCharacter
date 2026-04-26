@@ -489,7 +489,7 @@ body.dark-theme .choice-wrong   { background: #450a0a; border-color: var(--wrong
 /* ── Story Quiz ─────────────────────────────────────────────────────────────── */
 .sq-card { gap: 10px; text-align: center; }
 .sq-label { font-size: .7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; }
-.sq-story { font-size: 1.05rem; line-height: 1.7; color: var(--text); margin-top: 6px; word-break: keep-all; }
+.sq-story { font-size: 1.2rem; line-height: 1.75; color: var(--text); margin-top: 4px; word-break: keep-all; }
 .sq-eumhun { margin-top: 10px; font-size: 1rem; font-weight: 700; color: var(--primary); }
 .sq-answer { margin-top: 10px; font-size: .95rem; font-weight: 700; color: var(--wrong); }
 .sq-choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
