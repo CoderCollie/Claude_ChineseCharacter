@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.20';
+const APP_VERSION = 'v5.21';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -1018,10 +1018,16 @@ const App = (() => {
       else btn.classList.add('choice-disabled');
       btn.disabled = true;
     });
-    // wq-kor 텍스트를 그 자리에서 훈음으로 변환
+    // wq-kor 훈음 변환 (없으면 생성 — repetition >= 2로 숨겨진 경우)
     const c0 = HANJA_DATA.find(h => h.char === item.hanja[0]);
     const c1 = HANJA_DATA.find(h => h.char === item.hanja[1]);
-    const wqKor = document.querySelector('.wq-kor');
+    let wqKor = document.querySelector('.wq-kor');
+    if (!wqKor && c0 && c1) {
+      wqKor = document.createElement('div');
+      wqKor.className = 'wq-kor';
+      const wqHanja = document.querySelector('.wq-hanja');
+      if (wqHanja) wqHanja.parentNode.insertBefore(wqKor, wqHanja);
+    }
     if (wqKor && c0 && c1) {
       function splitEumhun(eumhun) {
         const parts = eumhun.split(' ');
