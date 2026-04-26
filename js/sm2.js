@@ -50,17 +50,16 @@ const SM2 = (() => {
       }
       // 같은 날 재등장 + 정답: interval/repetition/dueDate 그대로 유지
     } else {
-      // 오답: 날짜 무관하게 항상 리셋
+      // 오답: 오늘로 리셋 (다음 세션에 바로 재등장)
+      // lastReviewed도 null로 초기화해야 다음 정답 시 repetition이 정상 진행됨
       interval = 1;
       repetition = 0;
-      const due = new Date();
-      due.setDate(due.getDate() + 1);
-      dueDate = due.toISOString().split('T')[0];
+      dueDate = today();
     }
 
     efactor = Math.max(1.3, efactor + 0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
 
-    state[id] = { interval, repetition, efactor, dueDate, lastReviewed: today() };
+    state[id] = { interval, repetition, efactor, dueDate, lastReviewed: quality >= 3 ? today() : null };
     saveState(state);
     return state[id];
   }
@@ -161,11 +160,10 @@ const SM2 = (() => {
       }
     } else {
       interval = 1; repetition = 0;
-      const due = new Date(); due.setDate(due.getDate() + 1);
-      dueDate = due.toISOString().split('T')[0];
+      dueDate = today();
     }
     efactor = Math.max(1.3, efactor + 0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
-    s[hanja] = { interval, repetition, efactor, dueDate, lastReviewed: today() };
+    s[hanja] = { interval, repetition, efactor, dueDate, lastReviewed: correct ? today() : null };
     saveWqState(s);
   }
 

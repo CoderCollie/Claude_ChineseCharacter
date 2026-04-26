@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.19';
+const APP_VERSION = 'v5.20';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -424,6 +424,8 @@ const App = (() => {
     const total = state.wqQueue.length;
     const pct = Math.round((state.wqIndex / total) * 100);
     const answered = state.wqAnswered;
+    const wqState = SM2.loadWqState();
+    const showKorHint = !wqState[item.hanja] || (wqState[item.hanja].repetition < 2);
 
     const hanjaDisplay = item.hiddenIdx === 0
       ? `<span class="wq-blank">?</span><span class="wq-char">${item.revealed}</span>`
@@ -451,7 +453,7 @@ const App = (() => {
       <div class="card-area">
         <div class="card-simple wq-card">
           <div class="wq-label">단어 완성</div>
-          <div class="wq-kor">${item.korReading}</div>
+          ${showKorHint ? `<div class="wq-kor">${item.korReading}</div>` : ''}
           <div class="wq-hanja">${hanjaDisplay}</div>
         </div>
       </div>
