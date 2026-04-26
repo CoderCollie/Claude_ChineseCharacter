@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.29';
+const APP_VERSION = 'v5.30';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -143,8 +143,8 @@ const App = (() => {
         <button class="btn-primary" id="btn-start-all" ${sessionSize === 0 ? 'disabled' : ''}>
           ${sessionSize === 0 ? '오늘의 학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}
         </button>
-        <button class="btn-secondary" id="btn-story-quiz" ${storyAvail < 10 ? 'disabled' : ''}>
-          📖 스토리 퀴즈${storyAvail < 10 ? ` (${storyAvail}/10 학습 필요)` : ''}
+        <button class="btn-primary" id="btn-story-quiz">
+          📖 스토리 퀴즈
         </button>
         <button class="btn-secondary btn-word-quiz" id="btn-word-quiz" ${statsTotal < 10 ? 'disabled' : ''}>
           📝 단어 퀴즈${statsTotal < 10 ? ` (${statsTotal}/10 학습 필요)` : ''}
@@ -926,18 +926,19 @@ const App = (() => {
   function buildStoryQuizQueue() {
     const smState = SM2.loadState();
     const t = new Date().toISOString().split('T')[0];
-    const candidates = HANJA_DATA.filter(h => smState[h.id] && h.story);
+    // 스토리가 있는 모든 카드 대상
+    const candidates = HANJA_DATA.filter(h => h.story);
     
-    // 1. 복습 대상 (최근 오답 포함)
-    const due = candidates.filter(h => smState[h.id].dueDate <= t);
-    // 2. 복습 아닌 대상 (순차적 학습용)
-    const notDue = candidates.filter(h => smState[h.id].dueDate > t);
+    // 1. 이미 학습했고 복습 날짜가 된 대상
+    const due = candidates.filter(h => smState[h.id] && smState[h.id].dueDate <= t);
+    // 2. 나머지 (미학습 카드 포함, 순차적)
+    const others = candidates.filter(h => !smState[h.id] || smState[h.id].dueDate > t);
 
     // 복습 대상은 섞어서 우선 배치
     const shuffledDue = shuffle([...due]);
     
-    // 부족한 경우 복습 아닌 카드를 '순차적으로' 추가
-    const combined = [...shuffledDue, ...notDue];
+    // 부족한 경우 나머지를 '순차적으로' 추가
+    const combined = [...shuffledDue, ...others];
 
     return combined.slice(0, 10).map(card => ({
       ...card, choices: generateStoryChoices(card)
@@ -986,6 +987,10 @@ const App = (() => {
     }
 
     setTimeout(() => {
+      // 처음 본 카드라면 학습 시작으로 자동 등록
+      if (!SM2.loadState()[card.id]) {
+        SM2.introduce(card.id);
+      }
       SM2.review(card.id, correct ? 4 : 1);
       SM2.recordAccuracy(card.id, correct);
       SM2.recordDailyQuiz();
