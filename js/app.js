@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.16';
+const APP_VERSION = 'v5.17';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -32,6 +32,13 @@ const App = (() => {
     wqCorrect: 0,
     wqTotal: 0,
     wqWrong: [],
+    // 스토리 퀴즈
+    sqQueue: [],
+    sqIndex: 0,
+    sqAnswered: null,
+    sqCorrect: 0,
+    sqTotal: 0,
+    sqWrong: [],
     newVersionAvailable: false,
     swRegistration: null,
     isDarkMode: localStorage.getItem('hanja_dark_mode') === 'true'
@@ -50,6 +57,8 @@ const App = (() => {
     else if (state.screen === 'history') app.innerHTML = renderHistory();
     else if (state.screen === 'word-quiz') app.innerHTML = renderWordQuiz();
     else if (state.screen === 'word-done') app.innerHTML = renderWordDone();
+    else if (state.screen === 'story-quiz') app.innerHTML = renderStoryQuiz();
+    else if (state.screen === 'story-done') app.innerHTML = renderStoryDone();
     else app.innerHTML = renderDone();
     bindEvents();
   }
@@ -70,6 +79,7 @@ const App = (() => {
     const dailyStats = SM2.getDailyStats();
     const recentHistory = SM2.getRecentHistory(5);
     const maxCount = Math.max(...recentHistory.map(d => d.count), 1);
+    const storyAvail = HANJA_DATA.filter(h => smState[h.id] && h.story).length;
 
     const SESSION_SIZE = 10;
     const dueCount = Math.min(due, SESSION_SIZE);
@@ -136,6 +146,9 @@ const App = (() => {
         </button>
         <button class="btn-secondary btn-word-quiz" id="btn-word-quiz" ${statsTotal < 10 ? 'disabled' : ''}>
           📝 단어 퀴즈${statsTotal < 10 ? ` (${statsTotal}/10 학습 필요)` : ''}
+        </button>
+        <button class="btn-secondary" id="btn-story-quiz" ${storyAvail < 10 ? 'disabled' : ''}>
+          📖 스토리 퀴즈${storyAvail < 10 ? ` (${storyAvail}/10 학습 필요)` : ''}
         </button>
         <button class="btn-secondary" id="btn-history">학습 기록 보기 →</button>
       </div>
@@ -465,6 +478,63 @@ const App = (() => {
     </div>`;
   }
 
+  function renderStoryQuiz() {
+    const card = state.sqQueue[state.sqIndex];
+    const total = state.sqQueue.length;
+    const pct = Math.round((state.sqIndex / total) * 100);
+    const answered = state.sqAnswered;
+    const smState = SM2.loadState();
+    const showHint = !smState[card.id] || (smState[card.id].repetition < 2);
+
+    const choiceBtns = card.choices.map((ch, i) => {
+      let cls = 'choice-btn sq-choice-btn';
+      if (answered) {
+        if (ch === card.char) cls += ' choice-correct';
+        else if (ch === answered) cls += ' choice-wrong';
+        else cls += ' choice-disabled';
+      }
+      return `<button class="${cls}" data-sq-idx="${i}"><span class="sq-choice-char">${ch}</span></button>`;
+    }).join('');
+
+    return `
+    <div class="screen study-screen">
+      <div class="study-header">
+        <button class="btn-icon" id="btn-sq-home">✕</button>
+        <div class="progress-wrap">
+          <div class="progress-bar" style="width:${pct}%"></div>
+        </div>
+        <span class="progress-text">${state.sqIndex + 1}/${total}</span>
+      </div>
+      <div class="card-area">
+        <div class="card-simple sq-card">
+          <div class="sq-label">어떤 한자일까요?</div>
+          <div class="sq-story">${card.story}</div>
+          ${showHint ? `<div class="sq-eumhun">${card.eumhun}</div>` : ''}
+        </div>
+      </div>
+      <div class="study-footer">
+        <div class="choice-grid sq-choice-grid">${choiceBtns}</div>
+      </div>
+    </div>`;
+  }
+
+  function renderStoryDone() {
+    const pct = state.sqTotal > 0 ? Math.round(state.sqCorrect / state.sqTotal * 100) : 0;
+    return `
+    <div class="screen done-screen">
+      <div class="done-icon">${pct >= 70 ? '🎉' : '📖'}</div>
+      <h2>스토리 퀴즈 완료!</h2>
+      <div class="done-stats">
+        <div class="stat-box"><span class="stat-num">${state.sqTotal}</span><span class="stat-label">문제</span></div>
+        <div class="stat-box"><span class="stat-num">${state.sqCorrect}</span><span class="stat-label">정답</span></div>
+        <div class="stat-box"><span class="stat-num">${pct}%</span><span class="stat-label">정답률</span></div>
+      </div>
+      ${state.sqWrong.length > 0 ? `<button class="btn-retry" id="btn-sq-retry">틀린 문제 다시 풀기 (${state.sqWrong.length}개)</button>` : ''}
+      <button class="btn-primary" id="btn-sq-again">스토리 퀴즈 다시</button>
+      <button class="btn-home-done" id="btn-sq-home-done">홈으로</button>
+    </div>`;
+  }
+
   // ── Events ─────────────────────────────────────────────────────────────────
 
   function bindEvents() {
@@ -594,6 +664,32 @@ const App = (() => {
 
     if (state.screen === 'home' && el('btn-word-quiz') && !el('btn-word-quiz').disabled) {
       el('btn-word-quiz').addEventListener('click', startWordQuiz);
+    }
+    if (state.screen === 'home' && el('btn-story-quiz') && !el('btn-story-quiz').disabled) {
+      el('btn-story-quiz').addEventListener('click', startStoryQuiz);
+    }
+
+    if (state.screen === 'story-quiz') {
+      el('btn-sq-home').addEventListener('click', () => { state.screen = 'home'; render(); });
+      if (!state.sqAnswered) {
+        document.querySelectorAll('[data-sq-idx]').forEach((btn, i) => {
+          btn.addEventListener('click', () => answerStoryQuiz(state.sqQueue[state.sqIndex].choices[i]));
+        });
+      }
+    }
+
+    if (state.screen === 'story-done') {
+      if (el('btn-sq-retry')) {
+        el('btn-sq-retry').addEventListener('click', () => {
+          const wrong = state.sqWrong.map(card => ({ ...card, choices: generateStoryChoices(card) }));
+          state.sqQueue = shuffle([...wrong]);
+          state.sqIndex = 0; state.sqAnswered = null;
+          state.sqCorrect = 0; state.sqTotal = 0; state.sqWrong = [];
+          state.screen = 'story-quiz'; render();
+        });
+      }
+      el('btn-sq-again').addEventListener('click', startStoryQuiz);
+      el('btn-sq-home-done').addEventListener('click', () => { state.screen = 'home'; render(); });
     }
   }
 
@@ -815,6 +911,82 @@ const App = (() => {
     const newW   = shuffle(items.filter(i => !wqState[i.hanja]));
     const notDue = shuffle(items.filter(i => wqState[i.hanja] && wqState[i.hanja].dueDate > t));
     return [...due, ...newW, ...notDue].slice(0, 10);
+  }
+
+  function generateStoryChoices(card) {
+    const sameLevel = shuffle((HANJA_BY_LEVEL[card.level] || []).filter(h => h.id !== card.id && h.char));
+    const distractors = sameLevel.slice(0, 3);
+    if (distractors.length < 3) {
+      const others = shuffle(HANJA_DATA.filter(h => h.id !== card.id && h.level !== card.level && h.char));
+      distractors.push(...others.slice(0, 3 - distractors.length));
+    }
+    return shuffle([card.char, ...distractors.map(h => h.char)]);
+  }
+
+  function buildStoryQuizQueue() {
+    const smState = SM2.loadState();
+    const t = new Date().toISOString().split('T')[0];
+    const candidates = HANJA_DATA.filter(h => smState[h.id] && h.story);
+    const due    = shuffle(candidates.filter(h => smState[h.id].dueDate <= t));
+    const notDue = shuffle(candidates.filter(h => smState[h.id].dueDate > t));
+    return [...due, ...notDue].slice(0, 10).map(card => ({
+      ...card, choices: generateStoryChoices(card)
+    }));
+  }
+
+  function startStoryQuiz() {
+    const queue = buildStoryQuizQueue();
+    if (queue.length === 0) {
+      alert('스토리가 있는 학습 카드가 부족합니다. 4~8급 한자를 더 학습해주세요.');
+      return;
+    }
+    state.screen = 'story-quiz';
+    state.sqQueue = queue;
+    state.sqIndex = 0;
+    state.sqAnswered = null;
+    state.sqCorrect = 0;
+    state.sqTotal = 0;
+    state.sqWrong = [];
+    render();
+  }
+
+  function answerStoryQuiz(selectedChar) {
+    const card = state.sqQueue[state.sqIndex];
+    const correct = selectedChar === card.char;
+    state.sqAnswered = selectedChar;
+
+    // 피드백 DOM 직접 업데이트
+    document.querySelectorAll('[data-sq-idx]').forEach((btn, i) => {
+      const ch = card.choices[i];
+      if (ch === card.char) btn.classList.add('choice-correct');
+      else if (ch === selectedChar) btn.classList.add('choice-wrong');
+      else btn.classList.add('choice-disabled');
+      btn.disabled = true;
+    });
+
+    // 오답 시 정답 한자의 훈음 표시
+    if (!correct) {
+      const sqCard = document.querySelector('.sq-card');
+      if (sqCard && !sqCard.querySelector('.sq-answer')) {
+        const ans = document.createElement('div');
+        ans.className = 'sq-answer';
+        ans.textContent = `정답: ${card.char} (${card.eumhun})`;
+        sqCard.appendChild(ans);
+      }
+    }
+
+    setTimeout(() => {
+      SM2.review(card.id, correct ? 4 : 1);
+      SM2.recordAccuracy(card.id, correct);
+      SM2.recordDailyQuiz();
+      state.sqTotal++;
+      if (correct) state.sqCorrect++;
+      else state.sqWrong.push(card);
+      state.sqIndex++;
+      state.sqAnswered = null;
+      if (state.sqIndex >= state.sqQueue.length) state.screen = 'story-done';
+      render();
+    }, correct ? 600 : 900);
   }
 
   function startWordQuiz() {
