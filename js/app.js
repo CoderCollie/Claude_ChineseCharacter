@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.23';
+const APP_VERSION = 'v5.24';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -508,6 +508,7 @@ const App = (() => {
       </div>
       <div class="card-area">
         <div class="card-simple sq-card">
+          <div class="card-hint" style="font-size:.8rem;margin-bottom:8px">${LEVEL_LABELS[card.level]}</div>
           <div class="sq-story">${card.story}</div>
           ${showHint ? `<div class="sq-eumhun">${card.eumhun}</div>` : ''}
         </div>
