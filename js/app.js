@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.28';
+const APP_VERSION = 'v5.29';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -1071,6 +1071,7 @@ const App = (() => {
   }
 
   function init() {
+    SM2.migrate(HANJA_DATA);
     render();
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').then(reg => {

@@ -9,8 +9,8 @@
 
 | 항목 | 값 |
 |------|-----|
-| `APP_VERSION` (js/app.js) | `v5.28` |
-| SW 캐시 버전 (sw.js) | `hanja-v51` |
+| `APP_VERSION` (js/app.js) | `v5.29` |
+| SW 캐시 버전 (sw.js) | `hanja-v52` |
 | 최종 업데이트 | 2026-04-26 |
 
 ---
@@ -75,7 +75,7 @@ PROJECT.md                   ← 이 파일
 ```javascript
 // js/data/levelN.js
 {
-  id: "h1234",          // 고유 ID (문자열)
+  id: "L3_01",          // 고유 ID (L[급수]_[순번] 형식)
   level: 3,             // 급수 (1~8, 숫자. 1=1급, 8=8급)
   char: "漢",           // 한자 (반드시 CJK 한자)
   eumhun: "한수 한",   // 훈음 (한국어, "뜻 음" 형식)
