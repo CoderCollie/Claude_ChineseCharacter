@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.22';
+const APP_VERSION = 'v5.23';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -109,7 +109,6 @@ const App = (() => {
           <h1 class="app-title">漢字 카드</h1>
         </div>
         <div class="title-actions">
-          ${streak > 0 ? `<span class="streak-badge">🔥 ${streak}일 연속${isNewRecord ? ' 🏆' : ''}</span>` : ''}
           <button class="btn-icon-small" id="btn-toggle-dark" title="다크모드">${state.isDarkMode ? '☀️' : '🌙'}</button>
           <button class="btn-icon-small" id="btn-settings" title="설정">⚙️</button>
           <button class="btn-guide" id="btn-guide">?</button>
