@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.32';
+const APP_VERSION = 'v5.33';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -723,6 +723,8 @@ const App = (() => {
     }
     const cacheNames = await caches.keys();
     for (let c of cacheNames) await caches.delete(c);
+    // 새로고침 후 설정창을 다시 열도록 플래그 설정
+    localStorage.setItem('hanja_open_settings', 'true');
     // 쿼리스트링으로 브라우저 캐시도 우회
     window.location.href = window.location.pathname + '?v=' + Date.now();
   }
@@ -1077,6 +1079,14 @@ const App = (() => {
   function init() {
     SM2.migrate(HANJA_DATA);
     render();
+
+    // 강제 업데이트 후 설정창 자동 복구
+    if (localStorage.getItem('hanja_open_settings') === 'true') {
+      const settingsOverlay = el('settings-overlay');
+      if (settingsOverlay) settingsOverlay.classList.remove('hidden');
+      localStorage.removeItem('hanja_open_settings');
+    }
+
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').then(reg => {
         state.swRegistration = reg;

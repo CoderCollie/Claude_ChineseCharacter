@@ -1,4 +1,4 @@
-const CACHE = 'hanja-v55';
+const CACHE = 'hanja-v56';
 const ASSETS = [
   '/Claude_ChineseCharacter/',
   '/Claude_ChineseCharacter/index.html',
