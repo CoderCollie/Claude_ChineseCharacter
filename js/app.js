@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.30';
+const APP_VERSION = 'v5.31';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -79,7 +79,6 @@ const App = (() => {
     const dailyStats = SM2.getDailyStats();
     const recentHistory = SM2.getRecentHistory(5);
     const maxCount = Math.max(...recentHistory.map(d => d.count), 1);
-    const storyAvail = HANJA_DATA.filter(h => smState[h.id] && h.story).length;
 
     const SESSION_SIZE = 10;
     const dueCount = Math.min(due, SESSION_SIZE);
@@ -121,8 +120,6 @@ const App = (() => {
         ${dailyStats.today > 0 ? `<p class="quiz-today-count">오늘 <strong>+${dailyStats.today} XP</strong> 획득 · 총 <strong>${dailyStats.total} XP</strong></p>` : ''}
       </section>
 
-
-
       ${recentHistory.some(d => d.count > 0) ? `
       <section class="daily-chart-section">
         <p class="section-label">최근 5일 학습량</p>
@@ -153,7 +150,7 @@ const App = (() => {
       </div>
 
       <div class="home-footer">
-        <span class="version-badge clickable" id="btn-version" title="강제 업데이트">${APP_VERSION} (force update)</span>
+        <span class="version-text">${APP_VERSION}</span>
       </div>
 
       ${state.newVersionAvailable ? `
@@ -181,6 +178,16 @@ const App = (() => {
               <input type="file" id="file-input" style="display:none" accept=".json">
             </div>
           </section>
+
+          <section class="guide-section">
+            <h3>앱 정보 및 업데이트</h3>
+            <div class="setting-actions">
+              <span class="version-text">현재 버전: ${APP_VERSION}</span>
+              <button class="btn-secondary" id="btn-force-update">강제 업데이트</button>
+            </div>
+            <p class="guide-note" style="margin-top:8px">업데이트가 정상적으로 작동하지 않을 때 사용하세요.</p>
+          </section>
+
           <section class="guide-section">
             <h3>초기화</h3>
             <button class="btn-wrong" id="btn-reset" style="width:100%">모든 학습 기록 삭제</button>
@@ -563,11 +570,13 @@ const App = (() => {
         });
       }
 
-      el('btn-version').addEventListener('click', () => {
-        if (confirm('최신 버전으로 강제 업데이트할까요?\n(캐시를 삭제하고 페이지를 새로고침합니다)')) {
-          forceUpdate();
-        }
-      });
+      if (el('btn-force-update')) {
+        el('btn-force-update').addEventListener('click', () => {
+          if (confirm('최신 버전으로 강제 업데이트할까요?\n(캐시를 삭제하고 페이지를 새로고침합니다)')) {
+            forceUpdate();
+          }
+        });
+      }
 
       el('btn-export').addEventListener('click', exportData);
       el('btn-import').addEventListener('click', () => el('file-input').click());
