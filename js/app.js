@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.26';
+const APP_VERSION = 'v5.27';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -927,9 +927,19 @@ const App = (() => {
     const smState = SM2.loadState();
     const t = new Date().toISOString().split('T')[0];
     const candidates = HANJA_DATA.filter(h => smState[h.id] && h.story);
-    const due    = shuffle(candidates.filter(h => smState[h.id].dueDate <= t));
-    const notDue = shuffle(candidates.filter(h => smState[h.id].dueDate > t));
-    return [...due, ...notDue].slice(0, 10).map(card => ({
+    
+    // 1. 복습 대상 (최근 오답 포함)
+    const due = candidates.filter(h => smState[h.id].dueDate <= t);
+    // 2. 복습 아닌 대상 (순차적 학습용)
+    const notDue = candidates.filter(h => smState[h.id].dueDate > t);
+
+    // 복습 대상은 섞어서 우선 배치
+    const shuffledDue = shuffle([...due]);
+    
+    // 부족한 경우 복습 아닌 카드를 '순차적으로' 추가
+    const combined = [...shuffledDue, ...notDue];
+
+    return combined.slice(0, 10).map(card => ({
       ...card, choices: generateStoryChoices(card)
     }));
   }
