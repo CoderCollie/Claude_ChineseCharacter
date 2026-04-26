@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.31';
+const APP_VERSION = 'v5.32';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -81,6 +81,7 @@ const App = (() => {
     const maxCount = Math.max(...recentHistory.map(d => d.count), 1);
 
     const SESSION_SIZE = 10;
+    // 홈 화면 버튼의 숫자 표시는 복습 + 신규 기준으로 계산
     const dueCount = Math.min(due, SESSION_SIZE);
     const newCount = Math.min(newAvail, SESSION_SIZE - dueCount);
     const sessionSize = dueCount + newCount;
@@ -413,7 +414,7 @@ const App = (() => {
     return `
     <div class="screen done-screen">
       <div class="done-icon">${pct >= 70 ? '🎉' : '📚'}</div>
-      <h2>세션 완료!</h2>
+      <h2>학습 완료!</h2>
       <div class="done-stats">
         <div class="stat-box"><span class="stat-num">${state.sessionTotal}</span><span class="stat-label">학습</span></div>
         <div class="stat-box"><span class="stat-num">${state.sessionCorrect}</span><span class="stat-label">정답</span></div>
@@ -473,7 +474,7 @@ const App = (() => {
     return `
     <div class="screen done-screen">
       <div class="done-icon">${pct >= 70 ? '🎉' : '📝'}</div>
-      <h2>단어 퀴즈 완료!</h2>
+      <h2>학습 완료!</h2>
       <div class="done-stats">
         <div class="stat-box"><span class="stat-num">${state.wqTotal}</span><span class="stat-label">문제</span></div>
         <div class="stat-box"><span class="stat-num">${state.wqCorrect}</span><span class="stat-label">정답</span></div>
@@ -530,7 +531,7 @@ const App = (() => {
     return `
     <div class="screen done-screen">
       <div class="done-icon">${pct >= 70 ? '🎉' : '📖'}</div>
-      <h2>스토리 퀴즈 완료!</h2>
+      <h2>학습 완료!</h2>
       <div class="done-stats">
         <div class="stat-box"><span class="stat-num">${state.sqTotal}</span><span class="stat-label">문제</span></div>
         <div class="stat-box"><span class="stat-num">${state.sqCorrect}</span><span class="stat-label">정답</span></div>
@@ -758,43 +759,26 @@ const App = (() => {
   }
 
   function startSession(mode = 'all') {
-    let queue = [];
+    const SESSION_SIZE = 10;
+    const t = new Date().toISOString().split('T')[0];
+    const smState = SM2.loadState();
 
-    if (mode === 'weak') {
-      queue = shuffle(SM2.getWeakCards(HANJA_DATA).slice(0, 20));
-    } else {
-      const SESSION_SIZE = 10;
-      const t = new Date().toISOString().split('T')[0];
-      const smState = SM2.loadState();
-      const acc = SM2.loadAccuracy();
+    // A: 오답 (Repetition 0)
+    const groupA = HANJA_DATA.filter(h => smState[h.id] && smState[h.id].repetition === 0);
+    // B: 복습 (Repetition > 0 and Due <= Today)
+    const groupB = HANJA_DATA.filter(h => smState[h.id] && smState[h.id].repetition > 0 && smState[h.id].dueDate <= t);
+    // C: 신규 (Not Started)
+    const groupC = HANJA_DATA.filter(h => !smState[h.id]);
+    // D: 대기 (Learned but Not Due)
+    const groupD = HANJA_DATA.filter(h => smState[h.id] && smState[h.id].repetition > 0 && smState[h.id].dueDate > t);
 
-      function isWeak(id) {
-        const a = acc[id];
-        return a && a.t > 0 && (a.c / a.t) < 0.5;
-      }
-
-      const introduced = HANJA_DATA.filter(h => smState[h.id]);
-      // ① 복습 대상 중 정답률 50% 미만
-      const dueWeak   = shuffle(introduced.filter(h => smState[h.id].dueDate <= t &&  isWeak(h.id)));
-      // ② 아직 복습일이 안 됐지만 정답률 50% 미만 (앞당겨 출제)
-      const earlyWeak = shuffle(introduced.filter(h => smState[h.id].dueDate >  t &&  isWeak(h.id)));
-      // ③ 복습 대상 중 정답률 50% 이상
-      const dueNormal =         introduced.filter(h => smState[h.id].dueDate <= t && !isWeak(h.id));
-
-      const hasWeak = dueWeak.length + earlyWeak.length > 0;
-
-      // 우선순위: ①→②→③, 약한 카드가 남아있으면 신규 없음
-      queue = [...dueWeak, ...earlyWeak, ...dueNormal].slice(0, SESSION_SIZE);
-
-      if (queue.length < SESSION_SIZE && !hasWeak) {
-        // 약한 카드가 없을 때만 신규 카드 투입 (8급→1급 순서)
-        for (const lv of LEVELS) {
-          if (queue.length >= SESSION_SIZE) break;
-          const pool = (HANJA_BY_LEVEL[lv] || []).filter(h => !smState[h.id]);
-          queue.push(...shuffle(pool).slice(0, SESSION_SIZE - queue.length));
-        }
-      }
-    }
+    // A, B는 복습 효과를 위해 섞고, C, D는 순차성 유지를 위해 그대로 둠
+    let queue = [
+      ...shuffle([...groupA]),
+      ...shuffle([...groupB]),
+      ...groupC,
+      ...groupD
+    ].slice(0, SESSION_SIZE);
 
     if (queue.length === 0) { render(); return; }
 
@@ -817,7 +801,6 @@ const App = (() => {
     const correct = selectedCard.id === card.id;
 
     state.answered = selectedCard.id;
-    // Fix A: 전체 render 대신 버튼 클래스만 직접 업데이트 (즉각 반응)
     document.querySelectorAll('.choice-btn').forEach((btn, i) => {
       const c = state.choices[i];
       if (c.id === card.id) btn.classList.add('choice-correct');
@@ -828,15 +811,13 @@ const App = (() => {
 
     setTimeout(() => {
       const retryCount = state.retryMap[card.id] || 0;
-      SM2.recordDailyQuiz(); // 매 시도마다 카운트
+      SM2.recordDailyQuiz();
       state.sessionTotal++;
 
       if (!correct && retryCount < 2) {
-        // 재시도: 큐 끝에 추가, SM2/정답률은 최종 결과 때 기록
         state.retryMap[card.id] = retryCount + 1;
         state.queue.push(card);
       } else {
-        // 최종 결과 (정답 or 재시도 2회 소진)
         SM2.review(card.id, correct ? 4 : 1);
         SM2.recordAccuracy(card.id, correct);
         if (correct) state.sessionCorrect++;
@@ -899,7 +880,6 @@ const App = (() => {
         const correct = hanja[hiddenIdx];
         const revealed = hanja[1 - hiddenIdx];
 
-        // 같은 급수 우선 오답 생성
         const correctCard = learnedMap[correct];
         const pool = Object.values(learnedMap).filter(h => h.char !== correct && h.char !== revealed);
         const sameLevel = shuffle(pool.filter(h => h.level === correctCard.level)).slice(0, 3).map(h => h.char);
@@ -913,13 +893,24 @@ const App = (() => {
       }
     }
 
-    // SRS 우선순위: 복습 대상 → 신규 → 아직 복습일 안 된 단어
     const wqState = SM2.loadWqState();
     const t = new Date().toISOString().split('T')[0];
-    const due    = shuffle(items.filter(i => wqState[i.hanja] && wqState[i.hanja].dueDate <= t));
-    const newW   = shuffle(items.filter(i => !wqState[i.hanja]));
-    const notDue = shuffle(items.filter(i => wqState[i.hanja] && wqState[i.hanja].dueDate > t));
-    return [...due, ...newW, ...notDue].slice(0, 10);
+    
+    // A: 오답 단어
+    const groupA = items.filter(i => wqState[i.hanja] && wqState[i.hanja].repetition === 0);
+    // B: 복습 주기 단어
+    const groupB = items.filter(i => wqState[i.hanja] && wqState[i.hanja].repetition > 0 && wqState[i.hanja].dueDate <= t);
+    // C: 신규 단어
+    const groupC = items.filter(i => !wqState[i.hanja]);
+    // D: 대기 단어
+    const groupD = items.filter(i => wqState[i.hanja] && wqState[i.hanja].repetition > 0 && wqState[i.hanja].dueDate > t);
+
+    return [
+      ...shuffle(groupA),
+      ...shuffle(groupB),
+      ...groupC,
+      ...groupD
+    ].slice(0, 10);
   }
 
   function generateStoryChoices(card) {
@@ -935,21 +926,25 @@ const App = (() => {
   function buildStoryQuizQueue() {
     const smState = SM2.loadState();
     const t = new Date().toISOString().split('T')[0];
-    // 스토리가 있는 모든 카드 대상
     const candidates = HANJA_DATA.filter(h => h.story);
     
-    // 1. 이미 학습했고 복습 날짜가 된 대상
-    const due = candidates.filter(h => smState[h.id] && smState[h.id].dueDate <= t);
-    // 2. 나머지 (미학습 카드 포함, 순차적)
-    const others = candidates.filter(h => !smState[h.id] || smState[h.id].dueDate > t);
+    // A: 오답 (Repetition 0)
+    const groupA = candidates.filter(h => smState[h.id] && smState[h.id].repetition === 0);
+    // B: 복습 (Due <= Today)
+    const groupB = candidates.filter(h => smState[h.id] && smState[h.id].repetition > 0 && smState[h.id].dueDate <= t);
+    // C: 신규 (Not Started)
+    const groupC = candidates.filter(h => !smState[h.id]);
+    // D: 대기 (Learned but Not Due)
+    const groupD = candidates.filter(h => smState[h.id] && smState[h.id].repetition > 0 && smState[h.id].dueDate > t);
 
-    // 복습 대상은 섞어서 우선 배치
-    const shuffledDue = shuffle([...due]);
-    
-    // 부족한 경우 나머지를 '순차적으로' 추가
-    const combined = [...shuffledDue, ...others];
+    let queue = [
+      ...shuffle([...groupA]),
+      ...shuffle([...groupB]),
+      ...groupC,
+      ...groupD
+    ].slice(0, 10);
 
-    return combined.slice(0, 10).map(card => ({
+    return queue.map(card => ({
       ...card, choices: generateStoryChoices(card)
     }));
   }
@@ -957,7 +952,7 @@ const App = (() => {
   function startStoryQuiz() {
     const queue = buildStoryQuizQueue();
     if (queue.length === 0) {
-      alert('스토리가 있는 학습 카드가 부족합니다. 4~8급 한자를 더 학습해주세요.');
+      alert('출제할 수 있는 스토리 퀴즈가 없습니다.');
       return;
     }
     state.screen = 'story-quiz';
@@ -975,7 +970,6 @@ const App = (() => {
     const correct = selectedChar === card.char;
     state.sqAnswered = selectedChar;
 
-    // 피드백 DOM 직접 업데이트
     document.querySelectorAll('[data-sq-idx]').forEach((btn, i) => {
       const ch = card.choices[i];
       if (ch === card.char) btn.classList.add('choice-correct');
@@ -984,7 +978,6 @@ const App = (() => {
       btn.disabled = true;
     });
 
-    // 오답 시 정답 한자의 훈음 표시
     if (!correct) {
       const sqCard = document.querySelector('.sq-card');
       if (sqCard && !sqCard.querySelector('.sq-answer')) {
@@ -996,7 +989,6 @@ const App = (() => {
     }
 
     setTimeout(() => {
-      // 처음 본 카드라면 학습 시작으로 자동 등록
       if (!SM2.loadState()[card.id]) {
         SM2.introduce(card.id);
       }
@@ -1033,7 +1025,6 @@ const App = (() => {
     const item = state.wqQueue[state.wqIndex];
     const correct = selectedChar === item.correct;
     state.wqAnswered = selectedChar;
-    // Fix A: 버튼 클래스 직접 업데이트
     document.querySelectorAll('[data-wq-idx]').forEach((btn, i) => {
       const ch = item.choices[i];
       if (ch === item.correct) btn.classList.add('choice-correct');
@@ -1041,7 +1032,6 @@ const App = (() => {
       else btn.classList.add('choice-disabled');
       btn.disabled = true;
     });
-    // wq-kor 훈음 변환 (없으면 생성 — repetition >= 2로 숨겨진 경우)
     const c0 = HANJA_DATA.find(h => h.char === item.hanja[0]);
     const c1 = HANJA_DATA.find(h => h.char === item.hanja[1]);
     let wqKor = document.querySelector('.wq-kor');
