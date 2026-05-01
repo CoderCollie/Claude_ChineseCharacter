@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.44';
+const APP_VERSION = 'v5.45';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -140,8 +140,7 @@ const App = (() => {
       <div class="home-actions">
         <button class="btn-primary" id="btn-start-all" ${sessionSize === 0 ? 'disabled' : ''}>
           ${sessionSize === 0 ? '오늘의 학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}
-        </button>
-        <button class="btn-primary" id="btn-start-infinite" style="background: #059669; margin-top: 8px;" ${statsTotal === 0 ? 'disabled' : ''}>
+        </button><button class="btn-primary" id="btn-start-infinite" style="background: #059669;" ${statsTotal === 0 ? 'disabled' : ''}>
           🔄 무한 복습
         </button>
         <button class="btn-primary" id="btn-story-quiz">
