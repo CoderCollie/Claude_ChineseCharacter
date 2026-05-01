@@ -303,7 +303,7 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
 
 .badge-new { position: absolute; top: 24px; left: 24px; background: var(--primary); color: #fff; font-size: .7rem; font-weight: 800; padding: 4px 10px; border-radius: 8px; }
 .card-retry { border: 2px solid #f59e0b !important; box-shadow: 0 0 0 4px rgba(245,158,11,0.12), var(--shadow) !important; }
-.hanja-char { font-size: 6rem; font-weight: 700; color: var(--text); line-height: 1; margin-bottom: 20px; }
+.hanja-char { font-size: 5.5rem; font-weight: 700; color: var(--text); line-height: 1; margin-bottom: 0; }
 .card-hint { font-size: .85rem; color: var(--text-muted); opacity: .6; }
 
 .eumhun { font-size: 1.4rem; font-weight: 600; color: var(--text); text-align: center; }
@@ -330,7 +330,7 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
   border-left: 3px solid var(--border);
   text-align: center;
 }
-.card-level { font-size: .75rem; color: var(--text-muted); background: var(--bg); padding: 4px 10px; border-radius: 8px; margin-top: 20px; font-weight: 600; }
+.card-level { position: absolute; bottom: 24px; font-size: .75rem; color: var(--text-muted); background: var(--bg); padding: 4px 10px; border-radius: 8px; font-weight: 600; }
 
 /* ── Actions ───────────────────────────────────────────────────────────────── */
 .action-row {
@@ -428,7 +428,7 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
 
 /* ── MCQ (4지선다) ──────────────────────────────────────────────────────────── */
 .card-area-simple { display: flex; align-items: center; justify-content: center; padding: 16px 0 8px; }
-.card-simple { background: var(--surface); border-radius: 32px; box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; width: 100%; max-width: 320px; min-height: 340px; position: relative; }
+.card-simple { background: var(--surface); border-radius: 32px; box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; width: 100%; max-width: 320px; aspect-ratio: 1 / 1.15; position: relative; }
 
 .study-footer {
   flex-shrink: 0;
