@@ -435,7 +435,7 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
   min-height: 220px;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   padding-bottom: env(safe-area-inset-bottom, 20px);
 }
 .study-footer--intro {
@@ -452,15 +452,19 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
 .choice-btn {
   border: 2px solid var(--border);
   border-radius: 24px;
-  padding: 36px 12px;
+  padding: 12px;
+  aspect-ratio: 1.8 / 1;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   background: var(--surface);
   color: var(--text);
   transition: all 0.15s;
-  line-height: 1.4;
+  line-height: 1.2;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   word-break: keep-all;
 }
 .choice-btn:active { transform: scale(0.97); }
