@@ -510,26 +510,17 @@ body.dark-theme .choice-wrong   { background: #450a0a; border-color: var(--wrong
   justify-content: center;
   z-index: 1000;
   padding: 20px;
-  backdrop-filter: blur(4px);
 }
 .modal-overlay.hidden { display: none; }
 
-.modal-content {
+.modal {
   background: var(--surface);
   width: 100%;
   max-width: 360px;
-  max-height: 90vh;
-  overflow-y: auto;
   border-radius: 28px;
   padding: 32px 24px;
   position: relative;
   box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-  animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15);
-}
-
-@keyframes modalPop {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
 }
 
 .modal-close {
@@ -543,6 +534,7 @@ body.dark-theme .choice-wrong   { background: #450a0a; border-color: var(--wrong
   cursor: pointer;
   padding: 8px;
 }
+
 
 /* ── Encyclopedia Detail Styles ─────────────────────────────────────────────── */
 .detail-header { text-align: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
