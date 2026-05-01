@@ -499,3 +499,68 @@ body.dark-theme .choice-wrong   { background: #450a0a; border-color: var(--wrong
 .sq-choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .sq-choice-btn { border-radius: 24px; }
 .sq-choice-char { font-size: 2.2rem; font-weight: 700; line-height: 1; }
+
+/* ── Modal Overlay ────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.hidden { display: none; }
+
+.modal-content {
+  background: var(--surface);
+  width: 100%;
+  max-width: 360px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 28px;
+  padding: 32px 24px;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+}
+
+@keyframes modalPop {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 8px;
+}
+
+/* ── Encyclopedia Detail Styles ─────────────────────────────────────────────── */
+.detail-header { text-align: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+.detail-char { font-size: 5rem; font-weight: 700; line-height: 1; color: var(--text); }
+.detail-eumhun { font-size: 1.6rem; font-weight: 800; color: var(--primary); margin-top: 8px; }
+.detail-level { display: inline-block; background: var(--bg); color: var(--text-muted); padding: 4px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; margin-top: 12px; }
+
+.detail-stats { display: flex; gap: 8px; margin-bottom: 24px; }
+.detail-stat-box { flex: 1; background: var(--bg); padding: 12px 4px; border-radius: 16px; text-align: center; }
+.detail-stat-box .stat-num { display: block; font-size: 1.1rem; font-weight: 800; color: var(--primary); }
+.detail-stat-box .stat-label { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; }
+
+.detail-info-section { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.info-item { display: flex; gap: 12px; font-size: 0.95rem; }
+.info-label { min-width: 70px; color: var(--text-muted); font-weight: 700; font-size: 0.75rem; text-transform: uppercase; padding-top: 3px; }
+.info-val { color: var(--text); line-height: 1.4; flex: 1; }
+
+.detail-story-section { background: var(--bg); padding: 20px; border-radius: 20px; border-left: 5px solid var(--primary); }
+.detail-story-section h3 { font-size: 0.8rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+.detail-story-section p { font-size: 1.05rem; line-height: 1.7; color: var(--text); word-break: keep-all; }
+

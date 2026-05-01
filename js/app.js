@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.46';
+const APP_VERSION = 'v5.47';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -405,7 +405,58 @@ const App = (() => {
         ${section('학습 중', '📖', learning, 'learning', '없어요.')}
         ${section('헷갈리는 한자', '🔄', weak, 'weak', '없어요. 모두 잘 외우고 있어요!')}
       </div>
+
+      <!-- 상세 보기 모달 -->
+      <div class="modal-overlay ${state.selectedCardId ? '' : 'hidden'}" id="detail-overlay">
+        <div class="modal-content">
+          <button class="modal-close" id="btn-close-detail">✕</button>
+          <div id="detail-body">
+            ${state.selectedCardId ? renderCardDetail(state.selectedCardId) : ''}
+          </div>
+        </div>
+      </div>
     </div>`;
+  }
+
+  function renderCardDetail(id) {
+    const card = HANJA_DATA.find(h => h.id === id);
+    const sm = SM2.loadState()[id];
+    const acc = SM2.getAccuracy(id);
+    const label = LEVEL_LABELS[card.level];
+
+    return `
+      <div class="detail-header">
+        <div class="detail-char">${card.char}</div>
+        <div class="detail-eumhun">${card.eumhun}</div>
+        <div class="detail-level">${label}</div>
+      </div>
+      
+      <div class="detail-stats">
+        <div class="detail-stat-box">
+          <span class="stat-num">${acc ? acc.pct : 0}%</span>
+          <span class="stat-label">정답률</span>
+        </div>
+        <div class="detail-stat-box">
+          <span class="stat-num">${sm ? sm.repetition : 0}회</span>
+          <span class="stat-label">복습</span>
+        </div>
+        <div class="detail-stat-box">
+          <span class="stat-num" style="font-size: 0.8rem;">${sm ? sm.dueDate : '-'}</span>
+          <span class="stat-label">다음 복습</span>
+        </div>
+      </div>
+
+      <div class="detail-info-section">
+        <div class="info-item"><span class="info-label">부수</span><span class="info-val">${card.busu || '-'}</span></div>
+        <div class="info-item"><span class="info-label">활용 단어</span><span class="info-val">${card.words ? card.words.join(', ') : '-'}</span></div>
+        <div class="info-item"><span class="info-label">유의자</span><span class="info-val">${card.similar ? card.similar.join(', ') : '-'}</span></div>
+      </div>
+
+      <div class="detail-story-section">
+        <h3>연상 스토리</h3>
+        <p>${card.story || '준비된 스토리가 없습니다.'}</p>
+      </div>
+    `;
   }
 
   function renderDone() {
@@ -594,6 +645,30 @@ const App = (() => {
 
     if (state.screen === 'history') {
       el('btn-back').addEventListener('click', () => { state.screen = 'home'; render(); });
+
+      // 한자 칩 클릭 이벤트
+      document.querySelectorAll('.hist-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          state.selectedCardId = chip.dataset.id;
+          render();
+        });
+      });
+
+      // 모달 닫기 이벤트
+      if (el('btn-close-detail')) {
+        el('btn-close-detail').addEventListener('click', () => {
+          state.selectedCardId = null;
+          render();
+        });
+      }
+      if (el('detail-overlay')) {
+        el('detail-overlay').addEventListener('click', (e) => {
+          if (e.target.id === 'detail-overlay') {
+            state.selectedCardId = null;
+            render();
+          }
+        });
+      }
 
       let touchStartX = 0, touchStartY = 0;
       const histScreen = document.querySelector('.history-screen');
