@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.45';
+const APP_VERSION = 'v5.46';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -880,7 +880,7 @@ const App = (() => {
         }
       }
       render();
-    }, 900);
+    }, 600);
   }
 
   function retryWrong() {
