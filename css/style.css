@@ -428,7 +428,7 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
 
 /* ── MCQ (4지선다) ──────────────────────────────────────────────────────────── */
 .card-area-simple { display: flex; align-items: center; justify-content: center; padding: 16px 0 8px; }
-.card-simple { background: var(--surface); border-radius: 32px; box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; width: 100%; max-width: 320px; position: relative; }
+.card-simple { background: var(--surface); border-radius: 32px; box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; width: 100%; max-width: 320px; min-height: 340px; position: relative; }
 
 .study-footer {
   flex-shrink: 0;
