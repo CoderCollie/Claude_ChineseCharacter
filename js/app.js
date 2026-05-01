@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.40';
+const APP_VERSION = 'v5.41';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -141,6 +141,9 @@ const App = (() => {
         <button class="btn-primary" id="btn-start-all" ${sessionSize === 0 ? 'disabled' : ''}>
           ${sessionSize === 0 ? '오늘의 학습 완료 ✓' : `학습 시작 (${sessionSize}장)`}
         </button>
+        <button class="btn-primary" id="btn-start-infinite" style="background: #059669; margin-top: 8px;" ${statsTotal === 0 ? 'disabled' : ''}>
+          🔄 무한 복습
+        </button>
         <button class="btn-primary" id="btn-story-quiz">
           📖 스토리 퀴즈
         </button>
@@ -255,9 +258,9 @@ const App = (() => {
       <div class="study-header">
         <button class="btn-icon" id="btn-home">✕</button>
         <div class="progress-wrap">
-          <div class="progress-bar" style="width:${pct}%"></div>
+          <div class="progress-bar" style="width:${state.mode === 'infinite' ? '100' : pct}%"></div>
         </div>
-        <span class="progress-text">${current}/${total}</span>
+        <span class="progress-text">${state.mode === 'infinite' ? `${state.sessionTotal} XP` : `${current}/${total}`}</span>
       </div>`;
 
     // 신규 카드 + 아직 소개 안 됨 → 소개 화면
@@ -547,7 +550,8 @@ const App = (() => {
 
   function bindEvents() {
     if (state.screen === 'home') {
-      el('btn-start-all').addEventListener('click', () => startSession());
+      el('btn-start-all').addEventListener('click', () => { state.mode = 'study'; startSession(); });
+      el('btn-start-infinite').addEventListener('click', startInfiniteReview);
 
       el('btn-guide').addEventListener('click', () => { el('guide-overlay').classList.remove('hidden'); });
       el('btn-close-guide').addEventListener('click', () => { el('guide-overlay').classList.add('hidden'); });
@@ -760,6 +764,42 @@ const App = (() => {
     reader.readAsText(file);
   }
 
+  function buildInfiniteQueue() {
+    const t = new Date().toISOString().split('T')[0];
+    const smState = SM2.loadState();
+    const learned = HANJA_DATA.filter(h => smState[h.id]);
+
+    // A: 오답 (repetition 0)
+    const groupA = learned.filter(h => smState[h.id].repetition === 0);
+    // B: 복습 (dueDate <= today)
+    const groupB = learned.filter(h => smState[h.id].repetition > 0 && smState[h.id].dueDate <= t);
+    // D: 나머지 배운 것들
+    const groupD = learned.filter(h => smState[h.id].repetition > 0 && smState[h.id].dueDate > t);
+
+    // 무한 모드는 한 번에 50장씩 큐를 생성하여 여유있게 공급
+    return [
+      ...shuffle([...groupA]),
+      ...shuffle([...groupB]),
+      ...shuffle([...groupD])
+    ].slice(0, 50);
+  }
+
+  function startInfiniteReview() {
+    const queue = buildInfiniteQueue();
+    if (queue.length === 0) return;
+    
+    state.screen = 'study';
+    state.mode = 'infinite'; // 무한 모드 표시용
+    state.queue = queue;
+    state.queueIndex = 0;
+    state.sessionCorrect = 0;
+    state.sessionTotal = 0;
+    state.choices = null;
+    state.answered = null;
+    state.quizDir = null;
+    render();
+  }
+
   function startSession(mode = 'all') {
     const SESSION_SIZE = 10;
     const t = new Date().toISOString().split('T')[0];
@@ -833,8 +873,13 @@ const App = (() => {
       state.introduced = false;
 
       if (state.queueIndex >= state.queue.length) {
-        state.screen = 'done';
-        SM2.recordStreak();
+        if (state.mode === 'infinite') {
+          state.queue = buildInfiniteQueue();
+          state.queueIndex = 0;
+        } else {
+          state.screen = 'done';
+          SM2.recordStreak();
+        }
       }
       render();
     }, 900);
