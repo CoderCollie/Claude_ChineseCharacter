@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5.41';
+const APP_VERSION = 'v5.42';
 
 const App = (() => {
   const NEW_PER_SESSION = 10;
@@ -316,14 +316,13 @@ const App = (() => {
 
     const retryCount = state.retryMap[card.id] || 0;
 
-    const cardBody = dir === 'char2eumhun'
-      ? `${isNew ? '<span class="badge-new">NEW</span>' : ''}${accBadge}
-         <div class="hanja-char">${card.char}</div>
-         <div class="card-level">${LEVEL_LABELS[card.level]}</div>`
-      : `${isNew ? '<span class="badge-new">NEW</span>' : ''}${accBadge}
-         <div class="card-hint" style="font-size:.8rem;margin-bottom:8px">${LEVEL_LABELS[card.level]}</div>
-         <div class="eumhun" style="font-size:1.8rem;font-weight:800">${card.eumhun}</div>
-         <div class="card-hint" style="margin-top:12px">한자를 고르세요</div>`;
+    const mainContent = dir === 'char2eumhun'
+      ? `<div class="hanja-char">${card.char}</div>`
+      : `<div class="eumhun" style="font-size:1.8rem;font-weight:800">${card.eumhun}</div>`;
+
+    const cardBody = `${isNew ? '<span class="badge-new">NEW</span>' : ''}${accBadge}
+       ${mainContent}
+       <div class="card-level">${LEVEL_LABELS[card.level]}</div>`;
 
     return `
     <div class="screen study-screen">

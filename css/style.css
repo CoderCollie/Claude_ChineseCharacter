@@ -306,7 +306,7 @@ body.dark-theme .streak-badge { background: #431407; color: #fb923c; }
 .hanja-char { font-size: 5.5rem; font-weight: 700; color: var(--text); line-height: 1; margin-bottom: 0; }
 .card-hint { font-size: .85rem; color: var(--text-muted); opacity: .6; }
 
-.eumhun { font-size: 1.4rem; font-weight: 600; color: var(--text); text-align: center; }
+.eumhun { font-size: 1.4rem; font-weight: 600; color: var(--text); text-align: center; margin-bottom: 0; }
 
 .card-busu {
   font-size: 0.8rem;
